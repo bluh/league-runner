@@ -15,6 +15,7 @@ const dbConfig = {
     database: process.env.DB_DATABASE,
     validateBulkLoadParameters: true,
     trustServerCertificate: true,
+    useColumnNames: true,
   }
 }
 
