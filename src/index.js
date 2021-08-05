@@ -1,8 +1,15 @@
 require('dotenv').config();
-const userUtils = require('./utils/user');
+const express = require('express');
+const apis = require('./api');
 
-console.log('starting');
+const app = express();
 
-userUtils.login('Aadu', 'AadusPassword')
-    .then(data => console.log('finally', data))
-    .catch(err => console.error(err));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+apis.forEach(v => {
+  console.log('Registering API', v.name || v);
+  v && v.registerApi(app);
+});
+
+app.listen(process.env.APP_PORT);
