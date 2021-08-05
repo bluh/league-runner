@@ -37,7 +37,37 @@ function login(username, password){
   })
 }
 
+function register(username, password){
+  return new Promise((resolve, reject) => {
+    databaseUtils.request("SELECT User FROM Users WHERE User = @username", 0, [
+      {name: "username", type: tedious.TYPES.NVarChar, value: username}
+    ])
+      .then(data => {
+        if(data.length > 0){
+          reject("Username in use");
+        }else{
+          const salt = crypto.randomBytes(process.env.SALT_SIZE * 1);
+          crypto.pbkdf2(password, salt, process.env.PWORD_ITERATIONS * 1, process.env.PWORD_SIZE * 1, process.env.PWORD_DIGEST, (err, key) => {
+            if(err){
+              reject(err);
+            }else{
+              databaseUtils.request("INSERT INTO Users(Username, Hash, Salt, Enabled, Created) VALUES(@username, @hash, @salt, 1, @created)", 0, [
+                {name: "username", type: tedious.TYPES.NVarChar, value: username},
+                {name: "hash", type: tedious.TYPES.Binary, value: key},
+                {name: "salt", type: tedious.TYPES.Binary, value: salt},
+                {name: "created", type: tedious.TYPES.DateTime, value: new Date()},
+              ])
+                .then(data => {
+                  resolve(data);
+                })
+            }
+          })
+        }
+      })
+  })
+}
 
 module.exports = {
-  login
+  login,
+  register
 }
