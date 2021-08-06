@@ -11,7 +11,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser(process.env.COOKIE_SECRET))
 
 apis.forEach(v => {
-  console.log('Registering API', v.name || v);
+  console.log('Registering API: ', v.name || v);
   v && v.registerApi(app);
 });
 
