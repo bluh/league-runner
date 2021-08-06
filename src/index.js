@@ -15,4 +15,6 @@ apis.forEach(v => {
   v && v.registerApi(app);
 });
 
+app.use('/', express.static('public'));
+
 app.listen(process.env.APP_PORT);
