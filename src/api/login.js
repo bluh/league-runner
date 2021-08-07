@@ -1,5 +1,6 @@
 const userUtils = require('../utils/user');
 const roleUtils = require('../utils/role');
+const apiUtils = require('../utils/api');
 const jwt = require('jsonwebtoken');
 
 function registerApi(app) {
@@ -8,12 +9,11 @@ function registerApi(app) {
     if(requestBody.username && requestBody.password){
       userUtils.login(requestBody.username, requestBody.password)
         .then(roles => {
-          const token = jwt.sign({
+          const userData = {
             user: requestBody.username,
             roles: roles
-          }, process.env.JWT_TOKEN, {
-            expiresIn: '6hr'
-          });
+          };
+          const token = jwt.sign(userData, process.env.JWT_TOKEN, { expiresIn: '6hr' });
           res
             .status(200)
             .cookie('DLAccess', token, {
@@ -22,13 +22,13 @@ function registerApi(app) {
               sameSite: true,
               secure: true
             })
-            .send(`Logged in as ${requestBody.username}`);
+            .json(userData);
         })
         .catch(() => {
-          res.status(401).send("Username or Password incorrect");
+          res.status(401).json(apiUtils.generateError(401));
         })
     }else{
-      res.status(400).send("Username or Password unspecified");
+      res.status(400).json(apiUtils.generateError(400));
     }
   })
 

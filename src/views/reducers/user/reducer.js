@@ -2,7 +2,7 @@ import { default as constants } from "./constants";
 
 const initialState = {
   loggedIn: false,
-  username: null,
+  user: null,
   loading: false
 }
 
@@ -17,7 +17,7 @@ export default function(state = initialState, action){
       return {
         ...state,
         loggedIn: true,
-        username: action.username,
+        user: action.user,
         loading: false,
       }
     case constants.AUTHENTICATE_FAILURE:

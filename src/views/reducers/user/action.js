@@ -1,15 +1,20 @@
 import { default as constants } from "./constants";
+import userServices from "../../services/user";
 
 function authenticateUser(username, password){
   const request = () => ({ type: constants.AUTHENTICATE });
-  const success = (username) => ({ type: constants.AUTHENTICATE_SUCCESS, username });
+  const success = (user) => ({ type: constants.AUTHENTICATE_SUCCESS, user });
   const failure = () => ({ type: constants.AUTHENTICATE_FAILURE });
 
   return (dispatch) => {
     dispatch(request())
-    setTimeout(() => {
-      dispatch(success("Aadu"));
-    }, 5000);
+    userServices.login(username, password)
+      .then(result => {
+        dispatch(success(result));
+      })
+      .catch(err => {
+        dispatch(failure());
+      })
   }
 }
 
