@@ -1,4 +1,5 @@
 require('dotenv').config();
+const path = require('path');
 const express = require('express');
 const cookieParser = require('cookie-parser');
 
@@ -15,6 +16,9 @@ apis.forEach(v => {
   v && v.registerApi(app);
 });
 
-app.use('/', express.static('public'));
+app.use('/', express.static('public'), (_, res) => {
+  // use backup routing
+  res.sendFile(path.resolve(__dirname, '../public/index.html'));
+});
 
 app.listen(process.env.APP_PORT);

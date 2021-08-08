@@ -1,39 +1,57 @@
 import React from "react";
 import { connect } from "react-redux";
-import { default as userActions } from "../../reducers/user/action";
+import { Col, Layout as AntdLayout, Menu, Row } from "antd";
+
+import "./layout.scss";
+import { Link, withRouter } from "react-router-dom";
 
 class Layout extends React.Component{
 
-  logIn = () => {
-    this.props.authenticateUser("Aadu", "aadus password");
-  }
-
   render() {
     return (
-      <div className="layout">
-        <h1>Drag League</h1>
-        {this.props.loggedIn ? 
-          (<p>Logged in as: {this.props.user.user}</p>)
-          : (<button onClick={this.logIn}>Log In</button>)
-        }
-        {this.props.loading && <p>Loading...</p>}
-      </div>
+      <AntdLayout className="layout-container">
+        <AntdLayout.Header className="layout-header">
+          <Row>
+            <Col>
+              <Link to="/"><h1>RPDR Fantasy League</h1></Link>
+            </Col>
+            <Col flex="auto">
+              <Menu theme="dark" mode="horizontal" selectedKeys={[this.props.location.pathname || "/"]} className="layout-navbar">
+                <Menu.Item key="/" onClick={() => this.props.history.push("/")}>
+                  Home
+                </Menu.Item>
+                <Menu.Item key="/seasons" onClick={() => this.props.history.push("/seasons")}>
+                  Seasons
+                </Menu.Item>
+                <Menu.Item key="/survey" onClick={() => this.props.history.push("/survey")}>
+                  Surveys
+                </Menu.Item>
+                <Menu.Item key="/statistics" onClick={() => this.props.history.push("/statistics")}>
+                  Statistics
+                </Menu.Item>
+              </Menu>
+            </Col>
+          </Row>
+        </AntdLayout.Header>
+        <AntdLayout.Content className="layout-content">
+          <Row>
+            <Col className="layout-content-container" span={24}>
+              {this.props.children}
+            </Col>
+          </Row>
+        </AntdLayout.Content>
+      </AntdLayout>
     );
   }
 }
 
 const mapStateToProps = (state) => {
-  const { loggedIn, user, loading } = state.User;
+  const { loggedIn, user } = state.User;
 
   return {
     loggedIn,
-    user,
-    loading
+    user
   }
 }
 
-const mapDispatchToProps = {
-  authenticateUser: userActions.authenticateUser
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(Layout);
+export default withRouter(connect(mapStateToProps)(Layout));
