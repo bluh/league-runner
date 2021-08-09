@@ -4,7 +4,7 @@ const apiUtils = require('../utils/api');
 const jwt = require('jsonwebtoken');
 
 function registerApi(app) {
-  app.post('/api/login', (req, res) => {
+  app.post('/api/user/login', (req, res) => {
     const requestBody = req.body;
     if(requestBody.username && requestBody.password){
       userUtils.login(requestBody.username, requestBody.password)
@@ -20,7 +20,8 @@ function registerApi(app) {
               maxAge: 6 * 60 * 60 * 1000,
               signed: true,
               sameSite: true,
-              secure: true
+              secure: true,
+              httpOnly: true
             })
             .json(userData);
         })
@@ -32,7 +33,7 @@ function registerApi(app) {
     }
   })
 
-  app.post('/api/register', (req, res) => {
+  app.post('/api/user/register', (req, res) => {
     const requestBody = req.body;
     if(requestBody.username && requestBody.password){
       userUtils.register(requestBody.username, requestBody.password)
@@ -47,19 +48,20 @@ function registerApi(app) {
     }
   })
 
-  app.get('/api/roles', roleUtils.authorize(['User']), (req, res) => {
+  app.get('/api/user/info', (req, res) => {
     const jwtToken = req.signedCookies.DLAccess;
-    roleUtils.getUserRoles(jwtToken)
-      .then(userRoles => {
-        res.status(200).json(userRoles)
+    roleUtils.getUserInfo(jwtToken)
+      .then(userData => {
+        res.status(200).json(userData)
       })
       .catch(err => {
-        res.status(401).send(err);
+        console.log('err', err);
+        res.status(401).json(apiUtils.generateError(401, err));
       })
   })
 }
 
 module.exports = {
-  name: "Login API",
+  name: "User API",
   registerApi
 }

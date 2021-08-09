@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-function getUserRoles(jwtToken) {
+function getUserInfo(jwtToken) {
   return new Promise((resolve, reject) => {
     if(jwtToken){
       jwt.verify(jwtToken, process.env.JWT_TOKEN, (err, token) => {
@@ -8,7 +8,7 @@ function getUserRoles(jwtToken) {
           console.error(err);
           reject(err);
         }else{
-          resolve(token.roles);
+          resolve(token);
         }
       });
     }else{
@@ -20,8 +20,9 @@ function getUserRoles(jwtToken) {
 function authorize(roles) {
   return (req, res, next) => {
     const jwtToken = req.signedCookies.DLAccess;
-    getUserRoles(jwtToken)
-      .then(userRoles => {
+    getUserInfo(jwtToken)
+      .then(userData => {
+        const userRoles = userData.roles;
         if(userRoles){
           if(roles && roles.length > 0 && userRoles.find(v => roles.includes(v.Name))){
             next();
@@ -31,11 +32,14 @@ function authorize(roles) {
         }else{
           res.sendStatus(401);
         }
-      });
+      })
+      .catch(() => {
+        res.sendStatus(401);
+      })
   }
 }
 
 module.exports = {
-  getUserRoles,
+  getUserInfo,
   authorize
 }

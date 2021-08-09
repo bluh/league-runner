@@ -8,19 +8,31 @@ const initialState = {
 
 export default function(state = initialState, action){
   switch(action.type){
-    case constants.AUTHENTICATE:
+    case constants.AUTHENTICATE_LOGIN:
+      return {
+        ...state,
+        user: action.user,
+        loggedIn: true,
+      }
+    case constants.AUTHENTICATE_LOGOUT:
+      return {
+        ...state,
+        user: null,
+        loggedIn: false,
+      }
+    case constants.LOGIN:
       return {
         ...state,
         loading: true
       }
-    case constants.AUTHENTICATE_SUCCESS:
+    case constants.LOGIN_SUCCESS:
       return {
         ...state,
         loggedIn: true,
         user: action.user,
         loading: false,
       }
-    case constants.AUTHENTICATE_FAILURE:
+    case constants.LOGIN_FAILURE:
       return {
         ...state,
         loading: false
