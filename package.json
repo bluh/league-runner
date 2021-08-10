@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start-server": "node src/index.js",
-    "start-react": "webpack watch --mode=development"
+    "start-react": "webpack watch --mode=development",
+    "start-dev": "webpack --mode=development && node src/index.js",
+    "start": "webpack --mode=production && node src/index.js"
   },
   "repository": {
     "type": "git",
