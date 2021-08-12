@@ -19,6 +19,11 @@ const dbConfig = {
   }
 }
 
+/**
+ * Returns new connection to the database server
+ * 
+ * @returns new Promise resolving to the Tedious Connection object
+ */
 function connect() {
   return new Promise((resolve, reject) => {
     const newConnection = new Connection(dbConfig);
@@ -35,6 +40,17 @@ function connect() {
   })
 }
 
+/**
+ * Creates a promise that resolves with the results of the
+ * 
+ * @param {string} query Query to run against sql server
+ * @param {int} numRows Number of rows to return, set to 0 for all rows
+ * @param {Object[]} parameters Array of parameters to set on the query
+ * @param {string} parameters[].name Name of parameter in the query
+ * @param {string} parameters[].value Value of the parameter
+ * @param {tedious.TediousType}  parameters[].type Type of the parameter
+ * @returns The result of the request 
+ */
 function request(query, numRows, parameters) {
   return new Promise((resolve, reject) => {
     connect()
