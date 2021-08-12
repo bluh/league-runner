@@ -68,7 +68,7 @@ function register(username, password){
                 {name: "Username", type: tedious.TYPES.NVarChar, value: username},
                 {name: "Hash", type: tedious.TYPES.Binary, value: key},
                 {name: "Salt", type: tedious.TYPES.Binary, value: salt}
-              ])
+              ], true)
                 .then(data => {
                   const userRoles = data.map(v => ({ID: v.RoleID.value, Name: v.Role.value}));
                   resolve(userRoles);

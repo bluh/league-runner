@@ -37,18 +37,35 @@ export default function(state = initialState, action){
         ...state,
         loading: false
       }
-      case constants.LOGOUT:
-        return {
-          ...state,
-          loading: true
-        }
-      case constants.LOGOUT_SUCCESS:
-        return {
-          ...state,
-          loggedIn: false,
-          user: null,
-          loading: false
-        }
+    case constants.LOGOUT:
+      return {
+        ...state,
+        loading: true
+      }
+    case constants.LOGOUT_SUCCESS:
+      return {
+        ...state,
+        loggedIn: false,
+        user: null,
+        loading: false
+      }
+    case constants.REGISTER:
+      return {
+        ...state,
+        loading: true
+      }
+    case constants.REGISTER_SUCCESS:
+      return {
+        ...state,
+        loggedIn: true,
+        user: action.user,
+        loading: false,
+      }
+    case constants.REGISTER_FAILURE:
+      return {
+        ...state,
+        loading: false
+      }
     default:
       return state;
   }

@@ -10,7 +10,9 @@ import userActions from "../../reducers/user/action";
 class Layout extends React.Component{
 
   logoutUser = () => {
-    this.props.logout();
+    this.props.logout(() => {
+      this.props.history.push("/");
+    });
   }
 
   render() {

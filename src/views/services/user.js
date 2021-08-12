@@ -15,8 +15,14 @@ function getUser(){
     .catch(err => null);
 }
 
+function register(username, password){
+  return api.post('user/register', {username, password})
+    .then(response => response.data);
+}
+
 export default {
   login,
   logout,
-  getUser
+  getUser,
+  register
 }

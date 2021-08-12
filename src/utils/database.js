@@ -49,9 +49,10 @@ function connect() {
  * @param {string} parameters[].name Name of parameter in the query
  * @param {string} parameters[].value Value of the parameter
  * @param {tedious.TediousType}  parameters[].type Type of the parameter
+ * @param {boolean?} isProcedure True if the request is a stored procedure
  * @returns The result of the request 
  */
-function request(query, numRows, parameters) {
+function request(query, numRows, parameters, isProcedure=false) {
   return new Promise((resolve, reject) => {
     connect()
       .then(connection => {
@@ -87,7 +88,11 @@ function request(query, numRows, parameters) {
           reject(err);
         })
 
-        connection.execSql(newRequest);
+        if(isProcedure){
+          connection.callProcedure(newRequest);
+        }else{
+          connection.execSql(newRequest);
+        }
       })
   })
 }
