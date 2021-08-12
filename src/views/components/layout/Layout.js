@@ -1,17 +1,23 @@
 import React from "react";
 import { connect } from "react-redux";
-import { Col, Layout as AntdLayout, Menu, Row } from "antd";
-
-import "./layout.scss";
+import { Button, Col, Layout as AntdLayout, Menu, Row } from "antd";
 import { Link, withRouter } from "react-router-dom";
 
+import "./layout.scss";
+
+import userActions from "../../reducers/user/action";
+
 class Layout extends React.Component{
+
+  logoutUser = () => {
+    this.props.logout();
+  }
 
   render() {
     return (
       <AntdLayout className="layout-container">
         <AntdLayout.Header className="layout-header">
-          <Row>
+          <Row style={{ height: "100%" }}>
             <Col>
               <Link to="/"><h1>RPDR Fantasy League</h1></Link>
             </Col>
@@ -31,6 +37,11 @@ class Layout extends React.Component{
                 </Menu.Item>
               </Menu>
             </Col>
+            {this.props.loggedIn && (
+              <Col className="layout-logout-btn">
+                <Button type="link" onClick={this.logoutUser}>Log Out</Button>
+              </Col>
+            )}
           </Row>
         </AntdLayout.Header>
         <AntdLayout.Content className="layout-content">
@@ -54,4 +65,8 @@ const mapStateToProps = (state) => {
   }
 }
 
-export default withRouter(connect(mapStateToProps)(Layout));
+const mapDispatchToProps = {
+  logout: userActions.logoutUser
+}
+
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Layout));

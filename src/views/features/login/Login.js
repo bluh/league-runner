@@ -1,4 +1,4 @@
-import { Button, Form, Input, Spin } from "antd";
+import { Button, Col, Form, Input, Row, Spin } from "antd";
 import React from "react";
 import { connect } from "react-redux";
 import { withRouter } from "react-router-dom";
@@ -24,20 +24,24 @@ class Login extends React.Component {
         ? (<h3>You are already logged in!</h3>)
         : (
           <Spin spinning={this.props.loading}>
-            <h1>Login</h1>
-            <Form ref={this.formRef} onFinish={this.formSubmit}>
-              <Form.Item name="username" label="Username">
-                <Input />
-              </Form.Item>
-              <Form.Item name="password" label="Password">
-                <Input type="password"/>
-              </Form.Item>
-              <Form.Item>
-                <Button type="primary" htmlType="submit">
-                  Log In
-                </Button>
-              </Form.Item>
-            </Form>
+            <Row justify="center">
+              <Col span={8}>
+                <h1>Login</h1>
+                <Form ref={this.formRef} onFinish={this.formSubmit}>
+                  <Form.Item name="username" label="Username">
+                    <Input />
+                  </Form.Item>
+                  <Form.Item name="password" label="Password">
+                    <Input type="password"/>
+                  </Form.Item>
+                  <Form.Item>
+                    <Button type="primary" htmlType="submit">
+                      Log In
+                    </Button>
+                  </Form.Item>
+                </Form>
+              </Col>
+            </Row>
           </Spin>
         )}
       </div>

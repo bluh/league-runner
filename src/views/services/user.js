@@ -5,6 +5,10 @@ function login(username, password){
     .then(response => response.data);
 }
 
+function logout() {
+  return api.get('user/logout');
+}
+
 function getUser(){
   return api.get('user/info')
     .then(response => response.data)
@@ -13,5 +17,6 @@ function getUser(){
 
 export default {
   login,
+  logout,
   getUser
 }

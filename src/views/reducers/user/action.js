@@ -27,7 +27,20 @@ function loginUser(username, password, callback){
   }
 }
 
+function logoutUser() {
+  const request = () => ({ type: constants.LOGOUT });
+  const success = () => ({ type: constants.LOGOUT_SUCCESS });
+  return (dispatch) => {
+    dispatch(request());
+    userServices.logout()
+      .then(() => {
+        dispatch(success());
+      })
+  }
+}
+
 export default {
   authenticateUser,
-  loginUser
+  loginUser,
+  logoutUser
 }

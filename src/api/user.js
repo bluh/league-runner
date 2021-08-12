@@ -37,15 +37,34 @@ function registerApi(app) {
     const requestBody = req.body;
     if(requestBody.username && requestBody.password){
       userUtils.register(requestBody.username, requestBody.password)
-        .then(() => {
-          res.status(201).send(`Created new user: ${requestBody.username}`);
+        .then((roles) => {
+          const userData = {
+            user: requestBody.username,
+            roles: roles
+          };
+          const token = jwt.sign(userData, process.env.JWT_TOKEN, { expiresIn: '6hr' });
+          res
+            .status(200)
+            .cookie('DLAccess', token, {
+              maxAge: 6 * 60 * 60 * 1000,
+              signed: true,
+              sameSite: true,
+              secure: true,
+              httpOnly: true
+            })
+            .json(userData);
         })
         .catch(() => {
-          res.status(401).send("Username in use");
+          res.status(401).json(apiUtils.generateError(500, "Could not register"));
         })
     }else{
-      res.status(400).send("Username or Password unspecified");
+      res.status(400).json(apiUtils.generateError(400, "Could not register"));
     }
+  })
+
+  app.get('/api/user/logout', (req, res) => {
+    res.clearCookie("DLAccess");
+    res.status(200).send();
   })
 
   app.get('/api/user/info', (req, res) => {
@@ -55,7 +74,6 @@ function registerApi(app) {
         res.status(200).json(userData)
       })
       .catch(err => {
-        console.log('err', err);
         res.status(401).json(apiUtils.generateError(401, err));
       })
   })

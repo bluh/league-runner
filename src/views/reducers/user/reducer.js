@@ -37,6 +37,18 @@ export default function(state = initialState, action){
         ...state,
         loading: false
       }
+      case constants.LOGOUT:
+        return {
+          ...state,
+          loading: true
+        }
+      case constants.LOGOUT_SUCCESS:
+        return {
+          ...state,
+          loggedIn: false,
+          user: null,
+          loading: false
+        }
     default:
       return state;
   }
