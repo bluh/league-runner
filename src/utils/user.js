@@ -52,34 +52,40 @@ function login(username, password){
  */
 function register(username, password){
   return new Promise((resolve, reject) => {
-    databaseUtils.request("SELECT User FROM Users WHERE User = @username", 0, [
-      {name: "username", type: tedious.TYPES.NVarChar, value: username}
-    ])
-      .then(data => {
-        if(data.length > 0){
-          reject("Username in use");
-        }else{
-          const salt = crypto.randomBytes(process.env.SALT_SIZE * 1);
-          crypto.pbkdf2(password, salt, process.env.PWORD_ITERATIONS * 1, process.env.PWORD_SIZE * 1, process.env.PWORD_DIGEST, (err, key) => {
-            if(err){
-              reject(err);
-            }else{
-              databaseUtils.request("AddUser", 0, [
-                {name: "Username", type: tedious.TYPES.NVarChar, value: username},
-                {name: "Hash", type: tedious.TYPES.Binary, value: key},
-                {name: "Salt", type: tedious.TYPES.Binary, value: salt}
-              ], true)
-                .then(data => {
-                  const userRoles = data.map(v => ({ID: v.RoleID.value, Name: v.Role.value}));
-                  resolve(userRoles);
-                })
-                .catch(err => {
-                  reject(err);
-                })
-            }
-          })
-        }
-      })
+    if(username.length > 20){
+      reject("Username too long");
+    }else if(password.length < 5){
+      reject("Password too short");
+    }else{
+      databaseUtils.request("SELECT User FROM Users WHERE User = @username", 0, [
+        {name: "username", type: tedious.TYPES.NVarChar, value: username}
+      ])
+        .then(data => {
+          if(data.length > 0){
+            reject("Username in use");
+          }else{
+            const salt = crypto.randomBytes(process.env.SALT_SIZE * 1);
+            crypto.pbkdf2(password, salt, process.env.PWORD_ITERATIONS * 1, process.env.PWORD_SIZE * 1, process.env.PWORD_DIGEST, (err, key) => {
+              if(err){
+                reject(err);
+              }else{
+                databaseUtils.request("AddUser", 0, [
+                  {name: "Username", type: tedious.TYPES.NVarChar, value: username},
+                  {name: "Hash", type: tedious.TYPES.Binary, value: key},
+                  {name: "Salt", type: tedious.TYPES.Binary, value: salt}
+                ], true)
+                  .then(data => {
+                    const userRoles = data.map(v => ({ID: v.RoleID.value, Name: v.Role.value}));
+                    resolve(userRoles);
+                  })
+                  .catch(err => {
+                    reject(err);
+                  })
+              }
+            })
+          }
+        });
+    }
   })
 }
 

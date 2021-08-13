@@ -28,10 +28,58 @@ class Register extends React.Component {
               <Col span={8}>
                 <h1>Register</h1>
                 <Form ref={this.formRef} onFinish={this.formSubmit}>
-                  <Form.Item name="username" label="Username">
+                  <Form.Item
+                    name="username"
+                    label="Username"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Username is required."
+                      },
+                      {
+                        max: 20,
+                        message: "Username must be smaller than 20 characters."
+                      }
+                    ]}
+                  >
                     <Input />
                   </Form.Item>
-                  <Form.Item name="password" label="Password">
+                  <Form.Item
+                    name="password"
+                    label="Password"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Password is required."
+                      },
+                      {
+                        min: 6,
+                        message: "Password must be at least 6 characters."
+                      }
+                    ]}
+                  >
+                    <Input type="password"/>
+                  </Form.Item>
+                  <Form.Item
+                    name="confirm"
+                    label="Confirm Password"
+                    dependencies={['password']}
+                    rules={[
+                      {
+                        required: true,
+                        message: "Please confirm your password."
+                      },
+                      ({ getFieldValue }) => ({
+                        validator: (_, value) => {
+                          if(getFieldValue('password') !== value){
+                            return Promise.reject(new Error("Password does not match"));
+                          }else{
+                            return Promise.resolve();
+                          }
+                        }
+                      })
+                    ]}
+                  >
                     <Input type="password"/>
                   </Form.Item>
                   <Form.Item>

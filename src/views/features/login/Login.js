@@ -28,10 +28,28 @@ class Login extends React.Component {
               <Col span={8}>
                 <h1>Login</h1>
                 <Form ref={this.formRef} onFinish={this.formSubmit}>
-                  <Form.Item name="username" label="Username">
+                  <Form.Item
+                    name="username"
+                    label="Username"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Username is required."
+                      }
+                    ]}
+                  >
                     <Input />
                   </Form.Item>
-                  <Form.Item name="password" label="Password">
+                  <Form.Item
+                    name="password"
+                    label="Password"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Password is required."
+                      }
+                    ]}
+                  >
                     <Input type="password"/>
                   </Form.Item>
                   <Form.Item>
