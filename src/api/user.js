@@ -8,12 +8,13 @@ function registerApi(app) {
     const requestBody = req.body;
     if(requestBody.username && requestBody.password){
       userUtils.login(requestBody.username, requestBody.password)
-        .then(roles => {
-          const userData = {
+        .then(userData => {
+          const tokenData = {
             user: requestBody.username,
-            roles: roles
+            id: userData.UserID,
+            roles: userData.Roles
           };
-          const token = jwt.sign(userData, process.env.JWT_TOKEN, { expiresIn: '6hr' });
+          const token = jwt.sign(tokenData, process.env.JWT_TOKEN, { expiresIn: '6hr' });
           res
             .status(200)
             .cookie('DLAccess', token, {
@@ -23,7 +24,7 @@ function registerApi(app) {
               secure: true,
               httpOnly: true
             })
-            .json(userData);
+            .json(tokenData);
         })
         .catch(() => {
           res.status(401).json(apiUtils.generateError(401));
@@ -37,12 +38,13 @@ function registerApi(app) {
     const requestBody = req.body;
     if(requestBody.username && requestBody.password){
       userUtils.register(requestBody.username, requestBody.password)
-        .then((roles) => {
-          const userData = {
+        .then((userData) => {
+          const tokenData = {
             user: requestBody.username,
-            roles: roles
+            id: userData.UserID,
+            roles: userData.Roles
           };
-          const token = jwt.sign(userData, process.env.JWT_TOKEN, { expiresIn: '6hr' });
+          const token = jwt.sign(tokenData, process.env.JWT_TOKEN, { expiresIn: '6hr' });
           res
             .status(200)
             .cookie('DLAccess', token, {
@@ -52,7 +54,7 @@ function registerApi(app) {
               secure: true,
               httpOnly: true
             })
-            .json(userData);
+            .json(tokenData);
         })
         .catch(() => {
           res.status(401).json(apiUtils.generateError(500, "Could not register"));

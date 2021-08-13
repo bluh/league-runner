@@ -28,8 +28,8 @@ class Layout extends React.Component{
                 <Menu.Item key="/" onClick={() => this.props.history.push("/")}>
                   Home
                 </Menu.Item>
-                <Menu.Item key="/seasons" onClick={() => this.props.history.push("/seasons")}>
-                  Seasons
+                <Menu.Item key="/leagues" onClick={() => this.props.history.push("/leagues")}>
+                  Leagues
                 </Menu.Item>
                 <Menu.Item key="/survey" onClick={() => this.props.history.push("/survey")}>
                   Surveys
@@ -41,6 +41,7 @@ class Layout extends React.Component{
             </Col>
             {this.props.loggedIn && (
               <Col className="layout-logout-btn">
+                <span>Hello {this.props.user.user}</span>
                 <Button type="link" onClick={this.logoutUser}>Log Out</Button>
               </Col>
             )}

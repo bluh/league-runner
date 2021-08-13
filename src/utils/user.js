@@ -7,7 +7,7 @@ const crypto = require('crypto');
  * 
  * @param {string} username User's username
  * @param {string} password User's password
- * @returns {Promise} Resolves with user roles on success, or error message on failure
+ * @returns {Promise<{UserID: int, Username: string, Roles: string[]}>} Resolves with user data on success, or error message on failure
  */
 function login(username, password){
   return new Promise((resolve, reject) => {
@@ -19,7 +19,7 @@ function login(username, password){
             console.error(error);
             reject("Incorrect Username or Password");
           }else{
-            databaseUtils.request("SELECT * FROM UserAndRoles WHERE Username = @username AND Hash = @password", 1, [
+            databaseUtils.request("SELECT * FROM UserAndRoles WHERE Username = @username AND UserHash = @password", 0, [
               {name: "username", type: tedious.TYPES.NVarChar, value: username},
               {name: "password", type: tedious.TYPES.Binary, value: key}
             ])
@@ -27,8 +27,12 @@ function login(username, password){
                 if(data.length === 0){
                   reject("Incorrect Username or Password");
                 }else{
-                  const userRoles = data.map(v => ({ID: v.RoleID.value, Name: v.Role.value}));
-                  resolve(userRoles);
+                  const userData = {
+                    UserID: data[0].UserID.value,
+                    Username: username,
+                    Roles: data.map(v => ({ID: v.RoleID.value, Name: v.Role.value}))
+                  };
+                  resolve(userData);
                 }
               })
               .catch(err => {
@@ -48,7 +52,7 @@ function login(username, password){
  * 
  * @param {string} username New user's username
  * @param {string} password New user's password
- * @returns {Promise} Resolves with user roles on success, or error message on failure
+ * @returns {Promise<{UserID: int, Username: string, Roles: string[]}>} Resolves with user data on success, or error message on failure
  */
 function register(username, password){
   return new Promise((resolve, reject) => {
@@ -75,8 +79,12 @@ function register(username, password){
                   {name: "Salt", type: tedious.TYPES.Binary, value: salt}
                 ], true)
                   .then(data => {
-                    const userRoles = data.map(v => ({ID: v.RoleID.value, Name: v.Role.value}));
-                    resolve(userRoles);
+                    const userData = {
+                      UserID: data[0].UserID.value,
+                      Username: username,
+                      Roles: data.map(v => ({ID: v.RoleID.value, Name: v.Role.value}))
+                    };
+                    resolve(userData);
                   })
                   .catch(err => {
                     reject(err);

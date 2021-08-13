@@ -1,4 +1,5 @@
 module.exports = [
   require('./user'),
-  require('./health')
+  require('./health'),
+  require('./league')
 ];
