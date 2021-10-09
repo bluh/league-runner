@@ -16,6 +16,8 @@ class Layout extends React.Component{
   }
 
   render() {
+    const menuKeys = (this.props.location.pathname || "/").match(/\/(.*?)(?:\/|$)/);
+    const selectedMenuKey = menuKeys ? menuKeys[1] : "/";
     return (
       <AntdLayout className="layout-container">
         <AntdLayout.Header className="layout-header">
@@ -24,17 +26,17 @@ class Layout extends React.Component{
               <Link to="/"><h1>RPDR Fantasy League</h1></Link>
             </Col>
             <Col flex="auto">
-              <Menu theme="dark" mode="horizontal" selectedKeys={[this.props.location.pathname || "/"]} className="layout-navbar">
+              <Menu theme="dark" mode="horizontal" selectedKeys={[selectedMenuKey]} className="layout-navbar">
                 <Menu.Item key="/" onClick={() => this.props.history.push("/")}>
                   Home
                 </Menu.Item>
-                <Menu.Item key="/leagues" onClick={() => this.props.history.push("/leagues")}>
+                <Menu.Item key="leagues" onClick={() => this.props.history.push("/leagues")}>
                   Leagues
                 </Menu.Item>
-                <Menu.Item key="/survey" onClick={() => this.props.history.push("/survey")}>
+                <Menu.Item key="survey" onClick={() => this.props.history.push("/survey")}>
                   Surveys
                 </Menu.Item>
-                <Menu.Item key="/statistics" onClick={() => this.props.history.push("/statistics")}>
+                <Menu.Item key="statistics" onClick={() => this.props.history.push("/statistics")}>
                   Statistics
                 </Menu.Item>
               </Menu>
@@ -48,8 +50,8 @@ class Layout extends React.Component{
           </Row>
         </AntdLayout.Header>
         <AntdLayout.Content className="layout-content">
-          <Row>
-            <Col className="layout-content-container" span={24}>
+          <Row justify="center">
+            <Col className="layout-content-container" span={20}>
               {this.props.children}
             </Col>
           </Row>
