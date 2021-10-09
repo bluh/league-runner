@@ -1,0 +1,22 @@
+@use "../../styles/colors.scss" as colors;
+
+.leagues-container{
+  .league-new{
+    .ant-avatar {
+      padding-top: 6px;
+      cursor: pointer;
+
+      &.user-icon {
+        background-color: colors.$primary2;
+      }
+      
+      &.admin-icon {
+        background-color: colors.$primary1;
+      }
+      
+      &.creator-icon {
+        background-color: colors.$bg3;
+      }
+    }
+  }
+}

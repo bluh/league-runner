@@ -7,6 +7,8 @@ import LeagueDetails from "./LeagueDetails";
 import LeagueIndex from "./LeagueIndex";
 import LeagueNew from "./LeagueNew";
 
+import "./League.scss";
+
 class Leagues extends React.Component {
   render() {
     const path = this.props.match.path;

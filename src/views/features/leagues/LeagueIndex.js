@@ -28,6 +28,7 @@ class LeagueIndex extends React.Component {
             </Col>
           </Row>
           <List
+            bordered
             itemLayout="horizontal"
             loading={this.props.loading}
             dataSource={this.props.leagues}
