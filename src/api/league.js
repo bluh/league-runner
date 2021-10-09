@@ -17,7 +17,8 @@ function registerApi(app){
               id: values.LeagueID.value,
               name: values.LeagueName.value,
               description: values.LeagueDescription.value,
-              owner: values.Owner.value
+              roleId: values.LeagueRoleID.value,
+              role: values.LeagueRole.value
             }))
             res.status(200).json(responseData);
           })
