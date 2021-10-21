@@ -9,7 +9,7 @@ function generateError(code, message){
 
 function getItemID() {
   return (req, res, next) => {
-    const pathRegex = /^.+\/(\d+)$/;
+    const pathRegex = /^.*\/(\d+)(?=\/.*?)/;
     const path = req.path;
     const result = pathRegex.exec(path);
     if(result){
