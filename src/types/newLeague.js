@@ -24,8 +24,8 @@ module.exports = {
             lessThanOrEqualTo: 3 
           }
         },
-        name: {
-          type: "string",
+        user: {
+          type: "number",
           presence: true
         }
       }

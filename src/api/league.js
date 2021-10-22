@@ -5,6 +5,28 @@ const databaseUtils = require('../utils/database');
 const validator = require('../utils/validator');
 const crypto = require('crypto');
 
+function generateHash(connection){
+  const newHash = crypto.randomBytes(8).toString('hex');
+  return new Promise((res, rej) => {
+    databaseUtils.requestWithConnection(connection, 'SELECT ID FROM Leagues WHERE Hash=@hash',0,[
+      {
+        name: 'hash',
+        type: tedious.TYPES.NVarChar,
+        value: newHash
+      }
+    ])
+      .then(data => {
+        if(data.length === 0){
+          res(newHash)
+        }else{
+          generateHash(connection)
+            .then(value => {
+              res(value);
+            })
+        }
+      })
+  })
+}
 
 function registerApi(app){
   app.get('/api/leagues', (req, res) => {
@@ -82,51 +104,68 @@ function registerApi(app){
     
     databaseUtils.connect()
       .then(connection => {
-        connection.transaction((error, done) => {
-          if(error)
+        connection.transaction((newTransactionError, doneTransaction) => {
+          if(newTransactionError)
             return res.status(500).json(apiUtils.generateError(500));
           
-          const newHash = crypto.randomBytes(8).toString('hex');
-          // TODO: validate that newHash is unique
-          
-          databaseUtils.requestWithConnection(connection, 'INSERT INTO Leagues(Name, Description, Hash, Enabled, Created) OUTPUT INSERTED.ID VALUES (@name, @description, @hash, 1, @created)', 0, [
-            {
-              name: "name",
-              type: tedious.TYPES.NVarChar,
-              value: data.name
-            },
-            {
-              name: "description",
-              type: tedious.TYPES.NVarChar,
-              value: data.description || null
-            },
-            {
-              name: "hash",
-              type: tedious.TYPES.NVarChar,
-              value: newHash
-            },
-            {
-              name: "created",
-              type: tedious.TYPES.DateTime,
-              value: new Date()
-            }
-          ])
-            .then((data) => {
-              const newId = data[0].ID.value;
-              done(null, (error) => {
-                if(error)
-                  return res.status(500).json(apiUtils.generateError(500));
-                
-                // TODO: add in the users afterwards
+          generateHash(connection)
+            .then(newHash => {
+              databaseUtils.requestWithConnection(connection, 'INSERT INTO Leagues(Name, Description, Hash, Enabled, Created) OUTPUT INSERTED.ID VALUES (@name, @description, @hash, 1, @created)', 0, [
+                {
+                  name: "name",
+                  type: tedious.TYPES.NVarChar,
+                  value: data.name
+                },
+                {
+                  name: "description",
+                  type: tedious.TYPES.NVarChar,
+                  value: data.description || null
+                },
+                {
+                  name: "hash",
+                  type: tedious.TYPES.NVarChar,
+                  value: newHash
+                },
+                {
+                  name: "created",
+                  type: tedious.TYPES.DateTime,
+                  value: new Date()
+                }
+              ])
+                .then((newLeagueData) => {
+                  const newId = newLeagueData[0].ID.value;
+                  const bulkLoad = connection.newBulkLoad('UserLeagues', (loadError, loadRows) => {
+                    if(loadError){
+                      console.error('loadError', loadError);
+                      doneTransaction(loadError.message);
+                    }else{
+                      doneTransaction(null, (transactionError) => {
+                        if(transactionError)
+                          return res.status(500).json(apiUtils.generateError(500, transactionError.message));
+                        res.status(200).json(newId);
+                      })
+                    }
 
-                res.status(200).json(newId);
-              })
-            })
-            .catch(err => {
-              console.error(err);
-              done("Error inserting into table", () => {
-                res.status(500).json(apiUtils.generateError(500, err));
-              });
+                  })
+
+                  bulkLoad.addColumn('LeagueID', tedious.TYPES.Int, { nullable: false });
+                  bulkLoad.addColumn('UserID', tedious.TYPES.Int, { nullable: false });
+                  bulkLoad.addColumn('RoleID', tedious.TYPES.Int, { nullable: false });
+
+                  data.users.forEach(v => {
+                    bulkLoad.addRow(newId, v.user, v.role);
+                  })
+
+                  connection.execBulkLoad(bulkLoad);
+                })
+                .catch(leagueError => {
+                  if(leagueError)
+                    console.error('leagueError', leagueError);
+                  console.error(leagueError);
+                  doneTransaction("Error inserting into table", () => {
+                    res.status(500).json(apiUtils.generateError(500, leagueError));
+                  });
+                })
             })
         }, tedious.ISOLATION_LEVEL.REPEATABLE_READ)
       })
