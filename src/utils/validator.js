@@ -35,8 +35,10 @@ validator.validators.array = function(value, options, key, attributes){
   return null;
 }
 
+const types = require('../types/types');
+
 validator.types = {
-  newLeague: require('../types/newLeague')
+  ...types
 }
 
 module.exports = validator;

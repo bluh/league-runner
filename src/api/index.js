@@ -1,5 +1,6 @@
 module.exports = [
   require('./user'),
   require('./health'),
-  require('./league')
+  require('./league'),
+  require('./metas')
 ];
