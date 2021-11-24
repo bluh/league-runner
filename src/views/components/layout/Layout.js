@@ -17,7 +17,7 @@ class Layout extends React.Component{
 
   render() {
     const menuKeys = (this.props.location.pathname || "/").match(/\/(.*?)(?:\/|$)/);
-    const selectedMenuKey = menuKeys ? menuKeys[1] : "/";
+    const selectedMenuKey = menuKeys ? (menuKeys[1] || "/") : "/";
     return (
       <AntdLayout className="layout-container">
         <AntdLayout.Header className="layout-header">

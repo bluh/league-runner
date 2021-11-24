@@ -4,7 +4,7 @@ import leagueServices from "../../services/league";
 function getUserLeagues() {
   const request = () => ({ type: constants.GET_USER_LEAGUES });
   const success = (data) => ({ type: constants.GET_USER_LEAGUES_SUCCESS, userLeagues: data});
-  const failure = (err) => ({ type: constants.GET_USER_LEAGUES_FAILURE });
+  const failure = (err) => ({ type: constants.GET_USER_LEAGUES_FAILURE, error: err });
 
   return (dispatch) => {
     dispatch(request());
@@ -13,11 +13,29 @@ function getUserLeagues() {
         dispatch(success(data));
       })
       .catch(err => {
-        dispatch(failure())
+        dispatch(failure(err))
+      })
+  }
+}
+
+function createNewLeague(data) {
+  const request = () => ({ type: constants.NEW_LEAGUE });
+  const success = (response) => ({ type: constants.NEW_LEAGUE_SUCCESS, newID: response });
+  const failure = (err) => ({ type:constants.NEW_LEAGUE_FAILURE, error: err });
+
+  return (dispatch) => {
+    dispatch(request());
+    leagueServices.newLeague(data)
+      .then(response => {
+        dispatch(success(response));
+      })
+      .catch(err => {
+        dispatch(failure(err));
       })
   }
 }
 
 export default {
-  getUserLeagues
+  getUserLeagues,
+  createNewLeague
 }

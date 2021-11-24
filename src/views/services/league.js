@@ -5,6 +5,12 @@ function getUserLeagues() {
     .then(response => response.data);
 }
 
+function newLeague(data){
+  return api.post('/leagues')
+    .then(response => response.data);
+}
+
 export default {
-  getUserLeagues
+  getUserLeagues,
+  newLeague
 }

@@ -2,7 +2,9 @@ import constants from "./constants";
 
 const initialState = {
   userLeagues: [],
-  loadingUserLeagues: false
+  loadingUserLeagues: false,
+  league: {},
+  loadingLeague: false,
 }
 
 export default function(state = initialState, action){
@@ -24,6 +26,7 @@ export default function(state = initialState, action){
         userLeagues: [],
         loadingUserLeagues: false
       }
+    case constants.NEW_LEAGUE:
     default:
       return state;
   }
