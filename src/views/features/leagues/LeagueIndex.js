@@ -1,4 +1,5 @@
 import React from "react";
+import PropTypes from "prop-types";
 import { Button, Col, List, Row, Spin } from "antd";
 import { PlusSquareOutlined } from "@ant-design/icons";
 
@@ -17,7 +18,7 @@ class LeagueIndex extends React.Component {
     return (
       <div className="leagues-index">
         <LeagueBreadcrumb />
-        <h1>{this.props.username}'s Leagues</h1>
+        <h1>{this.props.username}&apos;s Leagues</h1>
         <Spin spinning={this.props.loading}>
           <Row>
             <Col flex="auto">
@@ -34,7 +35,7 @@ class LeagueIndex extends React.Component {
             dataSource={this.props.leagues}
             renderItem={item => (
               <List.Item
-                actions={[<Link to={`/leagues/${item.id}`}>View</Link>, item.owner ? <Link to={`/leagues/${item.id}/admin`}>Admin</Link> : null]}
+                actions={[(<Link key="view" to={`/leagues/${item.id}`}>View</Link>), (item.owner ? <Link key="admin" to={`/leagues/${item.id}/admin`}>Admin</Link> : null)]}
               >
                 <List.Item.Meta
                   title={item.name}
@@ -49,13 +50,27 @@ class LeagueIndex extends React.Component {
   }
 }
 
+LeagueIndex.propTypes = {
+  loading: PropTypes.bool,
+  leagues: PropTypes.array,
+  username: PropTypes.string,
+  getUserLeagues: PropTypes.func
+}
+
+LeagueIndex.defaultProps = {
+  loading: true,
+  leagues: [],
+  username: "",
+  getUserLeagues: () => {}
+}
+
 const mapStateToProps = (state) => {
   const { loadingUserLeagues: loading, userLeagues: leagues } = state.League;
   const { user } = state.User;
 
   return {
     loading,
-    leagues: (leagues || []),
+    leagues: leagues,
     username: user.user
   }
 }

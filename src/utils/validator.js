@@ -8,7 +8,7 @@ const validator = require('validate.js');
  *    }
  *  }
  */
-validator.validators.array = function(value, options, key, attributes){
+validator.validators.array = function(value, options){
   const validateEach = options.each;
 
   if(!Array.isArray(value))

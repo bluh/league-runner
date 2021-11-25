@@ -1,4 +1,5 @@
 import React from "react";
+import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { Route, Switch } from "react-router";
 import { Link } from "react-router-dom";
@@ -32,6 +33,14 @@ class Leagues extends React.Component {
       </div>
     )
   }
+}
+
+Leagues.propTypes = {
+  loggedIn: PropTypes.bool
+}
+
+Leagues.defaultProps = {
+  loggedIn: false
 }
 
 const mapStateToProps = (state) => {

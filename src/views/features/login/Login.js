@@ -1,5 +1,6 @@
-import { Button, Col, Form, Input, Row, Spin } from "antd";
 import React from "react";
+import PropTypes from "prop-types";
+import { Button, Col, Form, Input, Row, Spin } from "antd";
 import { connect } from "react-redux";
 import { withRouter } from "react-router-dom";
 import userActions from "../../reducers/user/action";
@@ -12,7 +13,7 @@ class Login extends React.Component {
   }
 
   formSubmit = (data) => {
-    this.props.loginUser(data.username, data.password, data => {
+    this.props.loginUser(data.username, data.password, () => {
       this.props.history.push('/');
     })
   }
@@ -67,12 +68,23 @@ class Login extends React.Component {
   }
 }
 
+Login.propTypes = {
+  loggedIn: PropTypes.bool,
+  loading: PropTypes.bool,
+  loginUser: PropTypes.func,
+}
+
+Login.defaultProps = {
+  loggedIn: false,
+  loading: true,
+  loginUser: () => {},
+}
+
 const mapStateToProps = (state) => {
-  const { loggedIn, user, loading } = state.User;
+  const { loggedIn, loading } = state.User;
 
   return {
     loggedIn,
-    user,
     loading
   }
 }

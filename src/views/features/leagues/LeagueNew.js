@@ -1,6 +1,7 @@
+import React from "react";
+import PropTypes from "prop-types";
 import { DeleteOutlined, SmileOutlined, ToolOutlined, UserOutlined } from "@ant-design/icons";
 import { Button, Input, Row, Col, Card, Avatar, Menu, Dropdown, Tooltip, Form as StyleForm } from "antd";
-import React from "react";
 import { Form, Field } from "react-final-form";
 import { connect } from "react-redux";
 import { Prompt } from "react-router-dom";
@@ -298,6 +299,16 @@ class LeagueNew extends React.Component {
       </div>
     )
   }
+}
+
+LeagueNew.propTypes = {
+  username: PropTypes.string,
+  userID: PropTypes.number
+}
+
+LeagueNew.defaultProps = {
+  username: "",
+  userID: 0
 }
 
 const mapStateToProps = (state) => {

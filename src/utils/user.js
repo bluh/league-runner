@@ -35,13 +35,13 @@ function login(username, password){
                   resolve(userData);
                 }
               })
-              .catch(err => {
+              .catch(() => {
                 reject("Incorrect Username or Password");
               })
           }
         })
       })
-      .catch(err => {
+      .catch(() => {
         reject("Incorrect Username or Password");
       })
   })

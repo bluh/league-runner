@@ -1,4 +1,5 @@
 import React from "react";
+import PropTypes from "prop-types";
 import { Breadcrumb } from "antd";
 import { Link } from "react-router-dom";
 
@@ -20,6 +21,18 @@ class LeagueBreadcrumb extends React.Component {
       </Breadcrumb>
     )
   }
+}
+
+LeagueBreadcrumb.propTypes = {
+  leagueName: PropTypes.string,
+  leagueID: PropTypes.number,
+  isAdmin: PropTypes.bool
+}
+
+LeagueBreadcrumb.defaultProps = {
+  leagueName: null,
+  leagueID: null,
+  isAdmin: false
 }
 
 export default LeagueBreadcrumb;

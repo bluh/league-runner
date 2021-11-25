@@ -5,7 +5,7 @@ import metasService from "../../services/metas";
 function getUsersList(){
   const request = () => ({ type: constants.GET_USERS });
   const success = (users) => ({ type: constants.GET_USERS_SUCCESS, users });
-  const failure = () => ({ type: constants.GET_USERS_FAILURE });
+  const failure = (error) => ({ type: constants.GET_USERS_FAILURE, error });
 
   return (dispatch) => {
     dispatch(request())
@@ -14,7 +14,7 @@ function getUsersList(){
         dispatch(success(result));
       })
       .catch(err => {
-        dispatch(failure());
+        dispatch(failure(err));
       })
   }
 }

@@ -1,4 +1,3 @@
-const tedious = require('tedious');
 const roleUtils = require('../utils/role');
 const databaseUtils = require('../utils/database');
 const apiUtils = require('../utils/api');

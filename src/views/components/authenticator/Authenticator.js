@@ -1,4 +1,5 @@
 import React from "react";
+import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { Spin } from "antd";
 import userService from "../../services/user";
@@ -28,6 +29,14 @@ class Authenticator extends React.Component {
       </Spin>
     );
   }
+}
+
+Authenticator.propTypes = {
+  authenticateUser: PropTypes.func
+}
+
+Authenticator.defaultProps = {
+  authenticateUser: () => {}
 }
 
 const mapStateToProps = () => ({})

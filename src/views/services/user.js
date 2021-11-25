@@ -12,7 +12,7 @@ function logout() {
 function getUser(){
   return api.get('user/info')
     .then(response => response.data)
-    .catch(err => null);
+    .catch(() => null);
 }
 
 function register(username, password){

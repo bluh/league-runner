@@ -1,4 +1,5 @@
 import React from "react";
+import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { Button, Col, Layout as AntdLayout, Menu, Row } from "antd";
 import { Link, withRouter } from "react-router-dom";
@@ -61,12 +62,24 @@ class Layout extends React.Component{
   }
 }
 
+Layout.propTypes = {
+  loggedIn: PropTypes.bool,
+  username: PropTypes.string,
+  logout: PropTypes.func
+}
+
+Layout.defaultProps = {
+  loggedIn: false,
+  username: "",
+  logout: () => {}
+}
+
 const mapStateToProps = (state) => {
   const { loggedIn, user } = state.User;
 
   return {
     loggedIn,
-    user
+    username: user.user
   }
 }
 

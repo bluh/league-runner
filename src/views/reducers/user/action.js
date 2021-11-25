@@ -12,7 +12,7 @@ function authenticateUser(user) {
 function loginUser(username, password, callback){
   const request = () => ({ type: constants.LOGIN });
   const success = (user) => ({ type: constants.LOGIN_SUCCESS, user });
-  const failure = () => ({ type: constants.LOGIN_FAILURE });
+  const failure = (error) => ({ type: constants.LOGIN_FAILURE, error });
 
   return (dispatch) => {
     dispatch(request())
@@ -22,7 +22,7 @@ function loginUser(username, password, callback){
         callback(result);
       })
       .catch(err => {
-        dispatch(failure());
+        dispatch(failure(err));
       })
   }
 }
@@ -43,7 +43,7 @@ function logoutUser(callback) {
 function registerUser(username, password, callback){
   const request = () => ({ type: constants.REGISTER });
   const success = (user) => ({ type: constants.REGISTER_SUCCESS, user });
-  const failure = () => ({ type: constants.REGISTER_FAILURE });
+  const failure = (error) => ({ type: constants.REGISTER_FAILURE, error });
 
   return (dispatch) => {
     dispatch(request())
@@ -53,7 +53,7 @@ function registerUser(username, password, callback){
         callback(result);
       })
       .catch(err => {
-        dispatch(failure());
+        dispatch(failure(err));
       })
   }
 }

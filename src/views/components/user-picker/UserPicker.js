@@ -54,13 +54,15 @@ class UserPicker extends React.Component {
 UserPicker.propTypes = {
   onChange: PropTypes.func,
   value: PropTypes.number,
-  excludeList: PropTypes.array
+  excludeList: PropTypes.array,
+  usersList: PropTypes.array
 }
 
 UserPicker.defaultProps = {
   onChange: () => {},
   value: undefined,
-  excludeList: []
+  excludeList: [],
+  usersList: []
 }
 
 const mapStateToProps = (state) => {
