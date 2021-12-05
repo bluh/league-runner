@@ -44,7 +44,7 @@ class Layout extends React.Component{
             </Col>
             {this.props.loggedIn && (
               <Col className="layout-logout-btn">
-                <span>Hello {this.props.user.user}</span>
+                <span>Hello {this.props.username}</span>
                 <Button type="link" onClick={this.logoutUser}>Log Out</Button>
               </Col>
             )}
@@ -79,7 +79,7 @@ const mapStateToProps = (state) => {
 
   return {
     loggedIn,
-    username: user.user
+    username: user?.name
   }
 }
 

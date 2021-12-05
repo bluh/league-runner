@@ -27,6 +27,20 @@ export default function(state = initialState, action){
         loadingUserLeagues: false
       }
     case constants.NEW_LEAGUE:
+      return {
+        ...state,
+        loadingLeague: true,
+      }
+    case constants.NEW_LEAGUE_SUCCESS:
+      return {
+        ...state,
+        loadingLeague: false,
+      }
+    case constants.NEW_LEAGUE_FAILURE:
+      return {
+        ...state,
+        loadingLeague: true,
+      }
     default:
       return state;
   }

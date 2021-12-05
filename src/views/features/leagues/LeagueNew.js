@@ -1,11 +1,13 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { DeleteOutlined, SmileOutlined, ToolOutlined, UserOutlined } from "@ant-design/icons";
-import { Button, Input, Row, Col, Card, Avatar, Menu, Dropdown, Tooltip, Form as StyleForm } from "antd";
+import { Button, Input, Row, Col, Card, Avatar, Menu, Dropdown, Tooltip, Spin, Form as StyleForm, message } from "antd";
+import { withRouter } from "react-router";
 import { Form, Field } from "react-final-form";
 import { connect } from "react-redux";
 import { Prompt } from "react-router-dom";
 import { UserPicker } from "../../components";
+import leagueActions from "../../reducers/league/action";
 import LeagueBreadcrumb from "./LeagueBreadcrumb";
 import validateJs from "validate.js";
 
@@ -91,7 +93,7 @@ class LeagueNew extends React.Component {
     };
 
     form.change("users", newUsers);
-    cb();
+    cb && cb();
   }
 
   changeUserValue = (form, users, index, newUser, cb) => {
@@ -102,7 +104,7 @@ class LeagueNew extends React.Component {
     };
 
     form.change("users", newUsers);
-    cb();
+    cb && cb();
   }
 
   removeUser = (form, users, index) => {
@@ -119,7 +121,19 @@ class LeagueNew extends React.Component {
         <h1>New League</h1>
         <Form
           onSubmit={values => {
-            console.log('finished', values);
+            const newData = {
+              ...values,
+              users: values.users.filter(v => v.user !== this.props.userID).map(v => ({role: v.role, user: v.user}))
+            }
+
+            this.props.createLeague(newData, err => {
+              if(err){
+                message.error("Error creating new League");
+              }else{
+                message.success("New League created");
+                this.props.history.push("/leagues");
+              }
+            });
           }}
           validate={values => {
             var errors = validateJs(values, {
@@ -195,105 +209,109 @@ class LeagueNew extends React.Component {
             values,
             pristine,
           }) => (
-            <StyleForm
-              labelCol={{
-                span: 6
-              }}
-              wrapperCol={{
-                span: 18
-              }}
-              onFinish={handleSubmit}
+            <Spin
+              spinning={this.props.loading}
             >
-              <Prompt message="You have unsaved changes. Navigating away from this page will discard these changes." when={!pristine} />
-              <Row gutter={[16,32]}>
-                <Col span={14}>
-                  <Card title="Description">
-                    
-                    <Field name="name">
-                      {({ input, meta }) => (
-                        <StyleForm.Item
-                          required
-                          colon
-                          label="League Name"
-                          validateStatus={meta.touched && meta.error ? "error" : "success"}
-                          help={(meta.touched && meta.error) ? meta.error : null}
-                        >
-                          <Input type="text" {...input}/>
-                        </StyleForm.Item>
-                      )}
-                    </Field>
-                    <Field name="description">
-                      {({ input, meta }) => (
-                        <StyleForm.Item
-                          colon
-                          label="League Description"
-                          validateStatus={meta.touched && meta.error ? "error" : "success"}
-                          help={(meta.touched && meta.error) ? meta.error : null}
-                        >
-                          <Input.TextArea maxLength="200"{...input} />
-                        </StyleForm.Item>
-                      )}
-                    </Field>
-                  </Card>
-                </Col>
-                <Col span={10}>
-                  <Card title="Users">
-                      <Field name="users">
+              <StyleForm
+                labelCol={{
+                  span: 6
+                }}
+                wrapperCol={{
+                  span: 18
+                }}
+                onFinish={handleSubmit}
+              >
+                <Prompt message="You have unsaved changes. Navigating away from this page will discard these changes." when={!pristine} />
+                <Row gutter={[16,32]}>
+                  <Col span={14}>
+                    <Card title="Description">
+                      
+                      <Field name="name">
                         {({ input, meta }) => (
-                          <div className="league-admin-list">
-                            <Row style={{ paddingBottom: 16 }}>
-                              <Col span={24}>
-                                <Button type="dashed" onClick={() => this.addUser(form, values.users)} style={{ width: "100%" }}>
-                                  Add new user
-                                </Button>
-                              </Col>
-                            </Row>
-                            {input.value && input.value.map((userValue, index) => (
-                              <StyleForm.Item
-                              key={userValue.key}
-                                validateStatus={meta.error && meta.error[index] ? "error" : "success"}
-                                help={(meta.error && meta.error[index]) ? meta.error[index] : null}
-                                wrapperCol={{
-                                  span: 24
-                                }}
-                              >
-                                <Row gutter={[8, 8]}>
-                                  <Col>
-                                    <Dropdown
-                                      overlay={() => this.getRoleMenu(userValue.role, (newRole) => this.changeUserRole(form, values.users, index, newRole))}
-                                      trigger={['click']}
-                                    >
-                                      {this.getUserAvatar(userValue.role)}
-                                    </Dropdown>
-                                  </Col>
-                                  <Col flex="auto">
-                                    {index === 0
-                                      ? (<Input readOnly={true} value={userValue.name} />)
-                                      : (<UserPicker
-                                          onChange={(data) => this.changeUserValue(form, values.users, index, data, input.onBlur)}
-                                          value={userValue.user}
-                                          excludeList={values.users && values.users.map(v => v.user || undefined).filter(v => v)}
-                                        />)
-                                    }
-                                  </Col>
-                                  <Col>
-                                    <Button disabled={index === 0} type="text" onClick={() => this.removeUser(form, values.users, index)}>
-                                      <DeleteOutlined />
-                                    </Button>
-                                  </Col>
-                                </Row>
-                              </StyleForm.Item>
-                            ))}
-                          </div>
+                          <StyleForm.Item
+                            required
+                            colon
+                            label="League Name"
+                            validateStatus={meta.touched && meta.error ? "error" : "success"}
+                            help={(meta.touched && meta.error) ? meta.error : null}
+                          >
+                            <Input type="text" {...input}/>
+                          </StyleForm.Item>
                         )}
                       </Field>
-                  </Card>
-                </Col>
-              </Row>
-          
+                      <Field name="description">
+                        {({ input, meta }) => (
+                          <StyleForm.Item
+                            colon
+                            label="League Description"
+                            validateStatus={meta.touched && meta.error ? "error" : "success"}
+                            help={(meta.touched && meta.error) ? meta.error : null}
+                          >
+                            <Input.TextArea maxLength="200"{...input} />
+                          </StyleForm.Item>
+                        )}
+                      </Field>
+                    </Card>
+                  </Col>
+                  <Col span={10}>
+                    <Card title="Users">
+                        <Field name="users">
+                          {({ input, meta }) => (
+                            <div className="league-admin-list">
+                              <Row style={{ paddingBottom: 16 }}>
+                                <Col span={24}>
+                                  <Button type="dashed" onClick={() => this.addUser(form, values.users)} style={{ width: "100%" }}>
+                                    Add new user
+                                  </Button>
+                                </Col>
+                              </Row>
+                              {input.value && input.value.map((userValue, index) => (
+                                <StyleForm.Item
+                                key={userValue.key}
+                                  validateStatus={meta.error && meta.error[index] ? "error" : "success"}
+                                  help={(meta.error && meta.error[index]) ? meta.error[index] : null}
+                                  wrapperCol={{
+                                    span: 24
+                                  }}
+                                >
+                                  <Row gutter={[8, 8]}>
+                                    <Col>
+                                      <Dropdown
+                                        overlay={() => this.getRoleMenu(userValue.role, (newRole) => this.changeUserRole(form, values.users, index, newRole))}
+                                        trigger={['click']}
+                                      >
+                                        {this.getUserAvatar(userValue.role)}
+                                      </Dropdown>
+                                    </Col>
+                                    <Col flex="auto">
+                                      {index === 0
+                                        ? (<Input readOnly={true} value={userValue.name} />)
+                                        : (<UserPicker
+                                            onChange={(data) => this.changeUserValue(form, values.users, index, data, input.onBlur)}
+                                            value={userValue.user}
+                                            excludeList={values.users && values.users.map(v => v.user || undefined).filter(v => v)}
+                                          />)
+                                      }
+                                    </Col>
+                                    <Col>
+                                      <Button disabled={index === 0} type="text" onClick={() => this.removeUser(form, values.users, index)}>
+                                        <DeleteOutlined />
+                                      </Button>
+                                    </Col>
+                                  </Row>
+                                </StyleForm.Item>
+                              ))}
+                            </div>
+                          )}
+                        </Field>
+                    </Card>
+                  </Col>
+                </Row>
+            
 
-              <Button htmlType="submit">Create</Button>
-            </StyleForm>
+                <Button htmlType="submit">Create</Button>
+              </StyleForm>
+            </Spin>
           )}
         </Form>
       </div>
@@ -303,21 +321,31 @@ class LeagueNew extends React.Component {
 
 LeagueNew.propTypes = {
   username: PropTypes.string,
-  userID: PropTypes.number
+  userID: PropTypes.number,
+  loading: PropTypes.bool,
+  createLeague: PropTypes.func,
 }
 
 LeagueNew.defaultProps = {
   username: "",
-  userID: 0
+  userID: 0,
+  loading: false,
+  createLeague: () => {},
 }
 
 const mapStateToProps = (state) => {
   const { user } = state.User;
+  const { loadingLeague } = state.League;
 
   return {
     username: user ? user.user : "",
     userID: user.id,
+    loading: loadingLeague
   }
 }
 
-export default connect(mapStateToProps)(LeagueNew);
+const mapDispatchToProps = {
+  createLeague: leagueActions.createNewLeague
+}
+
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(LeagueNew));

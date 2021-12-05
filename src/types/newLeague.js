@@ -28,7 +28,8 @@ module.exports = {
           type: "number",
           presence: true
         }
-      }
+      },
+      unique: "user"
     }
   }
 }

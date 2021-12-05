@@ -23,7 +23,7 @@ Home.propTypes = {
   username: PropTypes.string,
 }
 
-Home.propTypes = {
+Home.defaultProps = {
   loggedIn: false,
   username: "",
 }
@@ -33,7 +33,7 @@ const mapStateToProps = state => {
 
   return {
     loggedIn,
-    username: user ? user.user : ""
+    username: user?.user
   }
 }
 

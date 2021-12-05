@@ -29,8 +29,8 @@ function generateHash(connection) {
   })
 }
 
-function registerApi(app) {
-  app.get('/api/leagues', (req, res) => {
+function getUserLeagues(req, res){
+  return new Promise((resolve, reject) => {
     const jwtToken = req.signedCookies.DLAccess;
     roleUtils.getUserInfo(jwtToken)
       .then((userData) => {
@@ -44,22 +44,31 @@ function registerApi(app) {
               description: values.LeagueDescription.value,
               roleId: values.LeagueRoleID.value,
               role: values.LeagueRole.value
-            }))
+            }));
             res.status(200).json(responseData);
+            resolve();
+          })
+          .catch(err => {
+            res.status(500).send(err);
+            reject();
           })
       })
       .catch(err => {
         res.status(500).send(err);
+        reject();
       })
-  })
+  });
+}
 
-  app.get('/api/league/*/queens', apiUtils.getItemID(), (req, res) => {
-    const itemID = res.locals.itemID;
-    if (itemID === null || itemID === undefined) {
+function getQueen(req, res){
+  return new Promise((resolve, reject) => {
+    const queenID = req.params.queenID;
+    if (queenID === null || queenID === undefined) {
       res.status(400).json(apiUtils.generateError(400, "Invalid league ID"));
+      reject();
     } else {
       databaseUtils.request('SELECT * FROM WeeklyQueenScores WHERE LeagueID=@LeagueID', 0, [
-        { name: "LeagueID", type: tedious.TYPES.Int, value: itemID }
+        { name: "LeagueID", type: tedious.TYPES.Int, value: queenID }
       ])
         .then((data) => {
           const responseData = data.map(values => ({
@@ -71,17 +80,28 @@ function registerApi(app) {
           }));
 
           res.status(200).json(responseData);
+          resolve();
+        })
+        .catch(err => {
+          res.status(500).send(err);
+          reject();
         })
     }
   })
+}
 
-  app.get('/api/league/*', apiUtils.getItemID(), (req, res) => {
-    const itemID = res.locals.itemID;
-    if (itemID === null || itemID === undefined) {
+function registerApi(app) {
+  app.get('/api/leagues', getUserLeagues)
+
+  app.get('/api/league/:queenID/queens', apiUtils.getItemID(), getQueen);
+
+  app.get('/api/league/:leagueID', apiUtils.getItemID(), (req, res) => {
+    const leagueID = req.params.itemID;
+    if (leagueID === null || leagueID === undefined) {
       res.status(400).json(apiUtils.generateError(400, "Invalid league ID"));
     } else {
       databaseUtils.request('SELECT ID, Name, Description FROM Leagues WHERE ID=@ID AND Enabled=1', 0, [
-        { name: "ID", type: tedious.TYPES.Int, value: itemID }
+        { name: "ID", type: tedious.TYPES.Int, value: leagueID }
       ])
         .then((data) => {
           const responseData = data.map(values => ({
@@ -96,12 +116,14 @@ function registerApi(app) {
 
   app.post('/api/league', roleUtils.authorize(['User']), (req, res) => {
     const data = req.body;
-    if (!data && data !== {})
+    const userID = res.locals.userID;
+
+    if (!data || data === {})
       return res.status(400).json(apiUtils.generateError(400));
 
     const errors = validator.validate(data, validator.types.newLeague);
     if (errors)
-      return res.status(400).json(apiUtils.generateError(400, errors));
+      return res.status(400).json(apiUtils.generateError(400, { errors }));
 
     databaseUtils.connect()
       .then(connection => {
@@ -138,8 +160,8 @@ function registerApi(app) {
                   const bulkLoad = connection.newBulkLoad('UserLeagues', (loadError, loadRows) => {
                     if (loadError || loadRows === 0) {
                       console.error('Error loading bulk rows for new league', loadError);
-                      doneTransaction("Error loading bulk rows for new league", () => {
-                        res.status(500).json(apiUtils.generateError(500, "Error loading bulk rows for new league"));
+                      doneTransaction("Error loading bulk rows for new league", err => {
+                        res.status(500).json(apiUtils.generateError(500, "Error loading bulk rows for new league", err));
                       });
                     } else {
                       doneTransaction(null, (transactionError) => {
@@ -154,8 +176,11 @@ function registerApi(app) {
                   bulkLoad.addColumn('UserID', tedious.TYPES.Int, { nullable: false });
                   bulkLoad.addColumn('RoleID', tedious.TYPES.Int, { nullable: false });
 
+                  bulkLoad.addRow(newId, userID, 3);
+
                   data.users.forEach(v => {
-                    bulkLoad.addRow(newId, v.user, v.role);
+                    if(v.user !== userID)
+                      bulkLoad.addRow(newId, v.user, v.role);
                   })
 
                   connection.execBulkLoad(bulkLoad);
@@ -176,5 +201,9 @@ function registerApi(app) {
 
 module.exports = {
   name: "League API",
-  registerApi
+  registerApi,
+  methods: {
+    getUserLeagues,
+    getQueen
+  }
 }

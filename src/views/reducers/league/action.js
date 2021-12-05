@@ -18,7 +18,7 @@ function getUserLeagues() {
   }
 }
 
-function createNewLeague(data) {
+function createNewLeague(data, finished) {
   const request = () => ({ type: constants.NEW_LEAGUE });
   const success = (response) => ({ type: constants.NEW_LEAGUE_SUCCESS, newID: response });
   const failure = (err) => ({ type:constants.NEW_LEAGUE_FAILURE, error: err });
@@ -28,9 +28,11 @@ function createNewLeague(data) {
     leagueServices.newLeague(data)
       .then(response => {
         dispatch(success(response));
+        finished(null);
       })
       .catch(err => {
         dispatch(failure(err));
+        finished(err);
       })
   }
 }

@@ -6,7 +6,7 @@ function getUserLeagues() {
 }
 
 function newLeague(data){
-  return api.post('/leagues', data)
+  return api.post('/league', data)
     .then(response => response.data);
 }
 

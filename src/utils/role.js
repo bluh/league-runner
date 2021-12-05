@@ -37,6 +37,8 @@ function authorize(roles) {
         const userRoles = userData.roles;
         if(userRoles){
           if(roles && roles.length > 0 && userRoles.find(v => roles.includes(v.Name))){
+            const userID = userData.id;
+            res.locals.userID = userID;
             next();
           }else{
             res.status(401).json(apiUtils.generateError(401, "User not in role"));
@@ -45,8 +47,8 @@ function authorize(roles) {
           res.status(401).json(apiUtils.generateError(401, "User not in role"));
         }
       })
-      .catch(() => {
-        res.status(401).json(apiUtils.generateError(401, "Error authenticating user"))
+      .catch(err => {
+        res.status(401).json(apiUtils.generateError(401, "Error authenticating user", err))
       })
   }
 }

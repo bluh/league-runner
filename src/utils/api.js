@@ -1,10 +1,15 @@
 const { STATUS_CODES } = require('http');
 
-function generateError(code, message){
-  return {
+function generateError(code, message, inner = null){
+  const error = {
     error: code,
     message: message || STATUS_CODES[code]
-  }
+  };
+
+  if(inner)
+    error.inner = inner;
+
+  return error;
 }
 
 function getItemID() {
