@@ -29,7 +29,7 @@ function generateHash(connection) {
   })
 }
 
-function getUserLeagues(req, res){
+function getUserLeagues(req, res) {
   return new Promise((resolve, reject) => {
     const jwtToken = req.signedCookies.DLAccess;
     roleUtils.getUserInfo(jwtToken)
@@ -60,7 +60,7 @@ function getUserLeagues(req, res){
   });
 }
 
-function getQueen(req, res){
+function getQueen(req, res) {
   return new Promise((resolve, reject) => {
     const queenID = req.params.queenID;
     if (queenID === null || queenID === undefined) {
@@ -90,17 +90,14 @@ function getQueen(req, res){
   })
 }
 
-function registerApi(app) {
-  app.get('/api/leagues', getUserLeagues)
-
-  app.get('/api/league/:queenID/queens', apiUtils.getItemID(), getQueen);
-
-  app.get('/api/league/:leagueID', apiUtils.getItemID(), (req, res) => {
-    const leagueID = req.params.itemID;
+function getLeague(req, res) {
+  return new Promise((resolve, reject) => {
+    const leagueID = req.params.leagueID;
     if (leagueID === null || leagueID === undefined) {
       res.status(400).json(apiUtils.generateError(400, "Invalid league ID"));
+      reject();
     } else {
-      databaseUtils.request('SELECT ID, Name, Description FROM Leagues WHERE ID=@ID AND Enabled=1', 0, [
+      databaseUtils.request('SELECT ID, Name, Description FROM Leagues WHERE I1D=@ID AND Enabled=1', 0, [
         { name: "ID", type: tedious.TYPES.Int, value: leagueID }
       ])
         .then((data) => {
@@ -110,26 +107,39 @@ function registerApi(app) {
             description: values.Description.value
           }))
           res.status(200).json(responseData);
+          resolve();
+        })
+        .catch((err) => {
+          res.status(500).send(err);
+          reject();
         })
     }
   })
+}
 
-  app.post('/api/league', roleUtils.authorize(['User']), (req, res) => {
+function newLeague(req, res) {
+  return new Promise((resolve, reject) => {
     const data = req.body;
     const userID = res.locals.userID;
 
-    if (!data || data === {})
-      return res.status(400).json(apiUtils.generateError(400));
+    if (!data || data === {}) {
+      res.status(400).json(apiUtils.generateError(400, "No payload"));
+      return reject();
+    }
 
     const errors = validator.validate(data, validator.types.newLeague);
-    if (errors)
-      return res.status(400).json(apiUtils.generateError(400, { errors }));
+    if (errors) {
+      res.status(400).json(apiUtils.generateError(400, { errors }));
+      return reject();
+    }
 
     databaseUtils.connect()
       .then(connection => {
         connection.transaction((newTransactionError, doneTransaction) => {
-          if (newTransactionError)
-            return res.status(500).json(apiUtils.generateError(500));
+          if (newTransactionError){
+            res.status(500).json(apiUtils.generateError(500));
+            return reject()
+          }
 
           generateHash(connection)
             .then(newHash => {
@@ -162,12 +172,16 @@ function registerApi(app) {
                       console.error('Error loading bulk rows for new league', loadError);
                       doneTransaction("Error loading bulk rows for new league", err => {
                         res.status(500).json(apiUtils.generateError(500, "Error loading bulk rows for new league", err));
+                        reject();
                       });
                     } else {
                       doneTransaction(null, (transactionError) => {
-                        if (transactionError)
-                          return res.status(500).json(apiUtils.generateError(500, transactionError.message));
+                        if (transactionError){
+                          res.status(500).json(apiUtils.generateError(500, transactionError.message));
+                          return reject(); 
+                        }
                         res.status(200).json(newId);
+                        resolve();
                       })
                     }
                   })
@@ -179,7 +193,7 @@ function registerApi(app) {
                   bulkLoad.addRow(newId, userID, 3);
 
                   data.users.forEach(v => {
-                    if(v.user !== userID)
+                    if (v.user !== userID)
                       bulkLoad.addRow(newId, v.user, v.role);
                   })
 
@@ -191,6 +205,7 @@ function registerApi(app) {
                   }
                   doneTransaction("Error creating new league", () => {
                     res.status(500).json(apiUtils.generateError(500, leagueError));
+                    reject();
                   });
                 })
             })
@@ -199,11 +214,22 @@ function registerApi(app) {
   })
 }
 
+function registerApi(app) {
+  app.get('/api/leagues', getUserLeagues);
+
+  app.get('/api/league/:queenID/queens', apiUtils.getItemID(), getQueen);
+
+  app.get('/api/league/:leagueID', apiUtils.getItemID(), getLeague);
+
+  app.post('/api/league', roleUtils.authorize(['User']), newLeague);
+}
+
 module.exports = {
   name: "League API",
   registerApi,
   methods: {
     getUserLeagues,
-    getQueen
+    getQueen,
+    getLeague
   }
 }

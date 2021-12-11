@@ -1,11 +1,16 @@
+function ping(req, res){
+  res.sendStatus(200);
+}
+
 function registerApi(api) {
-  api.get('/api/health/ping', (req, res) => {
-    res.sendStatus(200);
-  })
+  api.get('/api/health/ping', ping)
 }
 
 
 module.exports = {
   name: "Health API",
-  registerApi
+  registerApi,
+  methods: {
+    ping
+  }
 }
