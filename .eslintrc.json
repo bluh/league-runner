@@ -28,6 +28,7 @@
         "jest"
     ],
     "rules": {
-        "react/prop-types": [1, { "ignore": ["children", "dispatch", "match", "location", "history"]}]
+        "react/prop-types": [1, { "ignore": ["children", "dispatch", "match", "location", "history"]}],
+        "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }]
     }
 }

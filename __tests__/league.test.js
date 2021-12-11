@@ -87,7 +87,7 @@ describe('GET /api/league/{queen}/queens', () => {
   
     databaseUtils.__setDbData([dbData]);
   
-    return league.methods.getQueen(req, res)
+    return league.methods.getQueensInLeague(req, res)
       .catch(() => isError = true)
       .finally(() => {
         expect(isError).toBe(false);

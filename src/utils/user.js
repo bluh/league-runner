@@ -29,7 +29,7 @@ function login(username, password){
                 }else{
                   const userData = {
                     UserID: data[0].UserID.value,
-                    Username: username,
+                    Username: data[0].Username.value,
                     Roles: data.map(v => ({ID: v.RoleID.value, Name: v.Role.value}))
                   };
                   resolve(userData);

@@ -3,6 +3,21 @@ const databaseUtils = require('../utils/database');
 const apiUtils = require('../utils/api');
 
 function registerApi(api) {
+  /**
+   * @openapi
+   * 
+   * tags:
+   *  name: Metas
+   *  description: API calls for getting metadata
+   * 
+   * /api/metas/users:
+   *  get:
+   *    description: Gets a list of all users
+   *    tags: [Metas]
+   *    responses:
+   *      200:
+   *        description: The list of all users
+   */
   api.get('/api/metas/users', roleUtils.authorize(['User']), (req, res) => {
     databaseUtils.request("SELECT * FROM MetasUsers", 0, null)
       .then(data => {

@@ -1,3 +1,28 @@
+/**
+ * @openapi
+ * definitions:
+ *  newLeague:
+ *    required:
+ *      - name
+ *      - users
+ *    properties:
+ *      name:
+ *        type: string
+ *      description:
+ *        type: string
+ *      users:
+ *        type: array
+ *        items:
+ *          $ref: '#/definitions/userListItem'
+ *  userListItem:
+ *    type: object
+ *    properties:
+ *      role:
+ *        type: integer
+ *      user:
+ *        type: integer
+ */
+
 module.exports = {
   name: {
     type: "string",

@@ -49,18 +49,16 @@ function getUserLeagues(req, res) {
             resolve();
           })
           .catch(err => {
-            res.status(500).send(err);
-            reject();
+            reject(apiUtils.generateError(500, "Error getting data", err));
           })
       })
       .catch(err => {
-        res.status(500).send(err);
-        reject();
+        reject(apiUtils.generateError(500, "User is not logged in", err));
       })
   });
 }
 
-function getQueen(req, res) {
+function getQueensInLeague(req, res) {
   return new Promise((resolve, reject) => {
     const queenID = req.params.queenID;
     if (queenID === null || queenID === undefined) {
@@ -83,8 +81,7 @@ function getQueen(req, res) {
           resolve();
         })
         .catch(err => {
-          res.status(500).send(err);
-          reject();
+          reject(apiUtils.generateError(500, "Error getting data", err));
         })
     }
   })
@@ -97,21 +94,24 @@ function getLeague(req, res) {
       res.status(400).json(apiUtils.generateError(400, "Invalid league ID"));
       reject();
     } else {
-      databaseUtils.request('SELECT ID, Name, Description FROM Leagues WHERE I1D=@ID AND Enabled=1', 0, [
+      databaseUtils.request('SELECT ID, Name, Description FROM Leagues WHERE ID=@ID AND Enabled=1', 0, [
         { name: "ID", type: tedious.TYPES.Int, value: leagueID }
       ])
         .then((data) => {
-          const responseData = data.map(values => ({
-            id: values.ID.value,
-            name: values.Name.value,
-            description: values.Description.value
-          }))
-          res.status(200).json(responseData);
-          resolve();
+          if(data.length === 0){
+            reject(apiUtils.generateError(404, "No League found"));
+          }else{
+            const responseData = data.map(values => ({
+              id: values.ID.value,
+              name: values.Name.value,
+              description: values.Description.value
+            }))
+            res.status(200).json(responseData);
+            resolve();
+          }
         })
         .catch((err) => {
-          res.status(500).send(err);
-          reject();
+          reject(apiUtils.generateError(500, "Error getting data", err));
         })
     }
   })
@@ -123,22 +123,19 @@ function newLeague(req, res) {
     const userID = res.locals.userID;
 
     if (!data || data === {}) {
-      res.status(400).json(apiUtils.generateError(400, "No payload"));
-      return reject();
+      return reject(apiUtils.generateError(400, "No payload"));
     }
 
     const errors = validator.validate(data, validator.types.newLeague);
     if (errors) {
-      res.status(400).json(apiUtils.generateError(400, { errors }));
-      return reject();
+      return reject(apiUtils.generateError(400, "Invalid payload", { errors }));
     }
 
     databaseUtils.connect()
       .then(connection => {
         connection.transaction((newTransactionError, doneTransaction) => {
           if (newTransactionError){
-            res.status(500).json(apiUtils.generateError(500));
-            return reject()
+            return reject(apiUtils.generateError(500, "Error creating transaction", newTransactionError))
           }
 
           generateHash(connection)
@@ -171,14 +168,12 @@ function newLeague(req, res) {
                     if (loadError || loadRows === 0) {
                       console.error('Error loading bulk rows for new league', loadError);
                       doneTransaction("Error loading bulk rows for new league", err => {
-                        res.status(500).json(apiUtils.generateError(500, "Error loading bulk rows for new league", err));
-                        reject();
+                        reject(apiUtils.generateError(500, "Error loading bulk rows for new league", err));
                       });
                     } else {
                       doneTransaction(null, (transactionError) => {
                         if (transactionError){
-                          res.status(500).json(apiUtils.generateError(500, transactionError.message));
-                          return reject(); 
+                          return reject(apiUtils.generateError(500, transactionError)); 
                         }
                         res.status(200).json(newId);
                         resolve();
@@ -200,13 +195,9 @@ function newLeague(req, res) {
                   connection.execBulkLoad(bulkLoad);
                 })
                 .catch(leagueError => {
-                  if (leagueError) {
-                    console.error('Error creating new league', leagueError);
-                  }
                   doneTransaction("Error creating new league", () => {
-                    res.status(500).json(apiUtils.generateError(500, leagueError));
-                    reject();
-                  });
+                    reject(apiUtils.generateError(500, "Error creating new league", leagueError));
+                  })
                 })
             })
         }, tedious.ISOLATION_LEVEL.REPEATABLE_READ)
@@ -215,13 +206,79 @@ function newLeague(req, res) {
 }
 
 function registerApi(app) {
-  app.get('/api/leagues', getUserLeagues);
+  /**
+   * @openapi
+   * 
+   * tags:
+   *  name: League
+   *  description: API calls for League management
+   * 
+   * /api/leagues:
+   *  get:
+   *    description: Gets the Leagues for the current User
+   *    tags: [League]
+   *    responses:
+   *      200:
+   *        description: The Leagues for the current User
+   */
+  app.get('/api/leagues', apiUtils.wrapHandler(getUserLeagues));
 
-  app.get('/api/league/:queenID/queens', apiUtils.getItemID(), getQueen);
 
-  app.get('/api/league/:leagueID', apiUtils.getItemID(), getLeague);
+  /**
+   * @openapi
+   * 
+   * /api/league/{queenID}/queens:
+   *  get:
+   *    description: Get the Queens in a League
+   *    tags: [League]
+   *    parameters:
+   *      - name: queenID
+   *        in: path
+   *        required: true
+   *        type: integer
+   *    responses:
+   *      200:
+   *        description: The Queens in the league
+   */
+  app.get('/api/league/:queenID/queens', apiUtils.wrapHandler(getQueensInLeague));
 
-  app.post('/api/league', roleUtils.authorize(['User']), newLeague);
+
+  /**
+   * @openapi
+   * 
+   * /api/league/{leagueID}:
+   *  get:
+   *    description: Get the League object
+   *    tags: [League]
+   *    parameters:
+   *      - name: leagueID
+   *        in: path
+   *        required: true
+   *        type: integer
+   *    responses:
+   *      200:
+   *        description: The League object
+   */
+  app.get('/api/league/:leagueID',  apiUtils.wrapHandler(getLeague));
+
+
+  /**
+   * @openapi
+   * 
+   * /api/league:
+   *  post:
+   *    description: Create a new League
+   *    tags: [League]
+   *    requestBody:
+   *      content:
+   *        application/json:
+   *          schema:
+   *            $ref: '#/definitions/newLeague'
+   *    responses:
+   *      200:
+   *        description: The Queens in the league
+   */
+  app.post('/api/league', roleUtils.authorize(['User']), apiUtils.wrapHandler(newLeague));
 }
 
 module.exports = {
@@ -229,7 +286,7 @@ module.exports = {
   registerApi,
   methods: {
     getUserLeagues,
-    getQueen,
+    getQueensInLeague,
     getLeague
   }
 }

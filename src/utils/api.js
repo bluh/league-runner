@@ -12,21 +12,14 @@ function generateError(code, message, inner = null){
   return error;
 }
 
-function getItemID() {
+function wrapHandler(apiCall){
   return (req, res, next) => {
-    const pathRegex = /^.*\/(\d+)(?=\/.*?)/;
-    const path = req.path;
-    const result = pathRegex.exec(path);
-    if(result){
-      res.locals.itemID = result[1] * 1;
-    }else{
-      res.locals.itemID = null;
-    }
-    next();
+    apiCall(req, res, next)
+      .catch(next);
   }
 }
 
 module.exports = {
   generateError,
-  getItemID
+  wrapHandler
 }
