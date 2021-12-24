@@ -1,43 +1,33 @@
 import constants from "./constants";
 import leagueServices from "../../services/league";
+import { simpleReducerHelper } from '../helpers';
 
 function getUserLeagues() {
-  const request = () => ({ type: constants.GET_USER_LEAGUES });
-  const success = (data) => ({ type: constants.GET_USER_LEAGUES_SUCCESS, userLeagues: data});
-  const failure = (err) => ({ type: constants.GET_USER_LEAGUES_FAILURE, error: err });
+  return simpleReducerHelper({
+    request: constants.GET_USER_LEAGUES,
+    success: constants.GET_USER_LEAGUES_SUCCESS,
+    failure: constants.GET_USER_LEAGUES_FAILURE
+  }, leagueServices.getUserLeagues);
+}
 
-  return (dispatch) => {
-    dispatch(request());
-    leagueServices.getUserLeagues()
-      .then(data => {
-        dispatch(success(data));
-      })
-      .catch(err => {
-        dispatch(failure(err))
-      })
-  }
+function getLeague(id) {
+  return simpleReducerHelper({
+    request: constants.GET_LEAGUE,
+    success: constants.GET_LEAGUE_SUCCESS,
+    failure: constants.GET_LEAGUE_FAILURE
+  }, leagueServices.getLeague, [id]);
 }
 
 function createNewLeague(data, finished) {
-  const request = () => ({ type: constants.NEW_LEAGUE });
-  const success = (response) => ({ type: constants.NEW_LEAGUE_SUCCESS, newID: response });
-  const failure = (err) => ({ type:constants.NEW_LEAGUE_FAILURE, error: err });
-
-  return (dispatch) => {
-    dispatch(request());
-    leagueServices.newLeague(data)
-      .then(response => {
-        dispatch(success(response));
-        finished(null);
-      })
-      .catch(err => {
-        dispatch(failure(err));
-        finished(err);
-      })
-  }
+  return simpleReducerHelper({
+    request: constants.NEW_LEAGUE,
+    success: constants.NEW_LEAGUE_SUCCESS,
+    failure: constants.NEW_LEAGUE_FAILURE
+  }, leagueServices.newLeague, [data], finished);
 }
 
 export default {
   getUserLeagues,
+  getLeague,
   createNewLeague
 }

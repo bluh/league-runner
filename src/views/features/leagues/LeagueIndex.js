@@ -71,7 +71,7 @@ const mapStateToProps = (state) => {
   return {
     loading,
     leagues: leagues,
-    username: user.user
+    username: user?.name
   }
 }
 

@@ -1,4 +1,4 @@
-import { default as constants } from "./constants";
+import constants from "./constants";
 
 const initialState = {
   usersList: [],
@@ -17,7 +17,7 @@ export default function(state = initialState, action){
     case constants.GET_USERS_SUCCESS:
       return {
         ...state,
-        usersList: action.users,
+        usersList: action.data,
         loading: false
       }
     case constants.GET_USERS_FAILURE:

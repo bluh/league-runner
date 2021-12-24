@@ -13,8 +13,9 @@ class Register extends React.Component {
   }
 
   formSubmit = (data) => {
-    this.props.register(data.username, data.password, () => {
-      this.props.history.push('/');
+    this.props.register(data.username, data.password, (err) => {
+      if(!err)
+        this.props.history.push('/');
     })
   }
 

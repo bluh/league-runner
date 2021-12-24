@@ -13,8 +13,9 @@ class Login extends React.Component {
   }
 
   formSubmit = (data) => {
-    this.props.loginUser(data.username, data.password, () => {
-      this.props.history.push('/');
+    this.props.loginUser(data.username, data.password, (err) => {
+      if(!err)
+        this.props.history.push('/');
     })
   }
 

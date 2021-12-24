@@ -1,22 +1,14 @@
-import { default as constants } from "./constants";
+import constants from "./constants";
 import metasService from "../../services/metas";
+import { simpleReducerHelper } from "../helpers";
 
 
 function getUsersList(){
-  const request = () => ({ type: constants.GET_USERS });
-  const success = (users) => ({ type: constants.GET_USERS_SUCCESS, users });
-  const failure = (error) => ({ type: constants.GET_USERS_FAILURE, error });
-
-  return (dispatch) => {
-    dispatch(request())
-    metasService.getUsersList()
-      .then(result => {
-        dispatch(success(result));
-      })
-      .catch(err => {
-        dispatch(failure(err));
-      })
-  }
+  return simpleReducerHelper({
+    request: constants.GET_USERS,
+    success: constants.GET_USERS_SUCCESS,
+    failure: constants.GET_USERS_FAILURE
+  }, metasService.getUsersList);
 }
 
 export default {

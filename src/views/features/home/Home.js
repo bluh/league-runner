@@ -33,7 +33,7 @@ const mapStateToProps = state => {
 
   return {
     loggedIn,
-    username: user?.user
+    username: user?.name
   }
 }
 

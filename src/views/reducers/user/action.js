@@ -1,5 +1,6 @@
-import { default as constants } from "./constants";
+import constants from "./constants";
 import userServices from "../../services/user";
+import { simpleReducerHelper } from "../helpers";
 
 function authenticateUser(user) {
   if(user){
@@ -10,52 +11,27 @@ function authenticateUser(user) {
 }
 
 function loginUser(username, password, callback){
-  const request = () => ({ type: constants.LOGIN });
-  const success = (user) => ({ type: constants.LOGIN_SUCCESS, user });
-  const failure = (error) => ({ type: constants.LOGIN_FAILURE, error });
-
-  return (dispatch) => {
-    dispatch(request())
-    userServices.login(username, password)
-      .then(result => {
-        dispatch(success(result));
-        callback(result);
-      })
-      .catch(err => {
-        dispatch(failure(err));
-      })
-  }
+  return simpleReducerHelper({
+    request: constants.LOGIN,
+    success: constants.LOGIN_SUCCESS,
+    failure: constants.LOGIN_FAILURE
+  }, userServices.login, [username, password], callback);
 }
 
 function logoutUser(callback) {
-  const request = () => ({ type: constants.LOGOUT });
-  const success = () => ({ type: constants.LOGOUT_SUCCESS });
-  return (dispatch) => {
-    dispatch(request());
-    userServices.logout()
-      .then(() => {
-        dispatch(success());
-        callback();
-      })
-  }
+  return simpleReducerHelper({
+    request: constants.LOGOUT,
+    success: constants.LOGOUT_SUCCESS,
+    failure: constants.LOGOUT_FAILURE
+  }, userServices.logout, [], callback);
 }
 
 function registerUser(username, password, callback){
-  const request = () => ({ type: constants.REGISTER });
-  const success = (user) => ({ type: constants.REGISTER_SUCCESS, user });
-  const failure = (error) => ({ type: constants.REGISTER_FAILURE, error });
-
-  return (dispatch) => {
-    dispatch(request())
-    userServices.register(username, password)
-      .then(result => {
-        dispatch(success(result));
-        callback(result);
-      })
-      .catch(err => {
-        dispatch(failure(err));
-      })
-  }
+  return simpleReducerHelper({
+    request: constants.REGISTER,
+    success: constants.REGISTER_SUCCESS,
+    failure: constants.REGISTER_FAILURE
+  }, userServices.register, [username, password], callback);
 }
 
 export default {

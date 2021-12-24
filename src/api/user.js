@@ -37,7 +37,7 @@ function registerApi(app) {
       userUtils.login(requestBody.username, requestBody.password)
         .then(userData => {
           const tokenData = {
-            user: userData.Username,
+            name: userData.Username,
             id: userData.UserID,
             roles: userData.Roles
           };
@@ -91,7 +91,7 @@ function registerApi(app) {
       userUtils.register(requestBody.username, requestBody.password)
         .then((userData) => {
           const tokenData = {
-            user: requestBody.username,
+            name: requestBody.username,
             id: userData.UserID,
             roles: userData.Roles
           };

@@ -29,7 +29,7 @@ export default function(state = initialState, action){
       return {
         ...state,
         loggedIn: true,
-        user: action.user,
+        user: action.data,
         loading: false,
       }
     case constants.LOGIN_FAILURE:
@@ -58,7 +58,7 @@ export default function(state = initialState, action){
       return {
         ...state,
         loggedIn: true,
-        user: action.user,
+        user: action.data,
         loading: false,
       }
     case constants.REGISTER_FAILURE:

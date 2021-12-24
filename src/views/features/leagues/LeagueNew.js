@@ -338,8 +338,8 @@ const mapStateToProps = (state) => {
   const { loadingLeague } = state.League;
 
   return {
-    username: user ? user.user : "",
-    userID: user.id,
+    username: user?.name,
+    userID: user?.id,
     loading: loadingLeague
   }
 }

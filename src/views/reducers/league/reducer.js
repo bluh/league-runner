@@ -17,7 +17,7 @@ export default function(state = initialState, action){
     case constants.GET_USER_LEAGUES_SUCCESS:
       return {
         ...state,
-        userLeagues: action.userLeagues,
+        userLeagues: action.data,
         loadingUserLeagues: false
       }
     case constants.GET_USER_LEAGUES_FAILURE:
