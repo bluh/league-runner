@@ -1,6 +1,7 @@
 const databaseUtils = require('./database');
 const tedious = require('tedious');
 const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
 
 /**
  * Verify that a username/password matches a record in the database
@@ -30,7 +31,7 @@ function login(username, password){
                   const userData = {
                     UserID: data[0].UserID.value,
                     Username: data[0].Username.value,
-                    Roles: data.map(v => ({ID: v.RoleID.value, Name: v.Role.value}))
+                    Roles: data.map(v => v.Role.value)
                   };
                   resolve(userData);
                 }
@@ -82,7 +83,7 @@ function register(username, password){
                     const userData = {
                       UserID: data[0].UserID.value,
                       Username: username,
-                      Roles: data.map(v => ({ID: v.RoleID.value, Name: v.Role.value}))
+                      Roles: data.map(v => v.Role.value)
                     };
                     resolve(userData);
                   })
@@ -97,7 +98,28 @@ function register(username, password){
   })
 }
 
+/**
+ * Generates a JWT with supplied user data
+ * @param {{UserID: int, Username: string, Roles: string[]}} userData
+ * @returns {string} Token string
+ */
+function generateJWT(userData){
+  const tokenData = {
+    name: userData.Username
+  };
+  const tokenHeader = {
+    expiresIn: '6hr',
+    issuer: process.env.JWT_ISSUER,
+    audience: userData.Roles,
+    subject: `${userData.UserID}`
+  }
+  const token = jwt.sign(tokenData, process.env.JWT_TOKEN, tokenHeader);
+
+  return token;
+}
+
 module.exports = {
   login,
-  register
+  register,
+  generateJWT
 }

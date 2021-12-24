@@ -1,7 +1,6 @@
 const userUtils = require('../utils/user');
 const roleUtils = require('../utils/role');
 const apiUtils = require('../utils/api');
-const jwt = require('jsonwebtoken');
 
 function registerApi(app) {
   /**
@@ -36,12 +35,7 @@ function registerApi(app) {
     if(requestBody.username && requestBody.password){
       userUtils.login(requestBody.username, requestBody.password)
         .then(userData => {
-          const tokenData = {
-            name: userData.Username,
-            id: userData.UserID,
-            roles: userData.Roles
-          };
-          const token = jwt.sign(tokenData, process.env.JWT_TOKEN, { expiresIn: '6hr' });
+          const token = userUtils.generateJWT(userData);
           res
             .status(200)
             .cookie('DLAccess', token, {
@@ -51,9 +45,14 @@ function registerApi(app) {
               secure: true,
               httpOnly: true
             })
-            .json(tokenData);
+            .json({
+              id: userData.UserID,
+              name: userData.Username,
+              roles: userData.Roles
+            });
         })
-        .catch(() => {
+        .catch((err) => {
+          console.error(err);
           res.status(401).json(apiUtils.generateError(401, "Error logging in"));
         })
     }else{
@@ -90,12 +89,7 @@ function registerApi(app) {
     if(requestBody.username && requestBody.password){
       userUtils.register(requestBody.username, requestBody.password)
         .then((userData) => {
-          const tokenData = {
-            name: requestBody.username,
-            id: userData.UserID,
-            roles: userData.Roles
-          };
-          const token = jwt.sign(tokenData, process.env.JWT_TOKEN, { expiresIn: '6hr' });
+          const token = userUtils.generateJWT(userData);
           res
             .status(200)
             .cookie('DLAccess', token, {
@@ -105,7 +99,11 @@ function registerApi(app) {
               secure: true,
               httpOnly: true
             })
-            .json(tokenData);
+            .json({
+              id: userData.UserID,
+              name: userData.Username,
+              roles: userData.Roles
+            });
         })
         .catch(err => {
           res.status(401).json(apiUtils.generateError(500, "Could not register", err));

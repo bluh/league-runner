@@ -5,7 +5,7 @@ const apiUtils = require('./api');
  * Returns a user's user data given their auth token
  * 
  * @param {string} jwtToken The auth token found in the user's cookies
- * @returns {Promise<{UserID: int, Username: string, Roles: string[]}>} The user's data, or an error
+ * @returns {Promise<{id: int, name: string, roles: string[]}>} Promise resolving with the user's data
  */
 function getUserInfo(jwtToken) {
   return new Promise((resolve, reject) => {
@@ -15,7 +15,12 @@ function getUserInfo(jwtToken) {
           console.error(err);
           reject(err);
         }else{
-          resolve(token);
+          const userData = {
+            id: token.sub * 1,
+            name: token.name,
+            roles: token.aud
+          }
+          resolve(userData);
         }
       });
     }else{
@@ -36,7 +41,7 @@ function authorize(roles) {
       .then(userData => {
         const userRoles = userData.roles;
         if(userRoles){
-          if(roles && roles.length > 0 && userRoles.find(v => roles.includes(v.Name))){
+          if(roles && roles.length > 0 && userRoles.find(v => roles.includes(v))){
             const userID = userData.id;
             res.locals.userID = userID;
             next();

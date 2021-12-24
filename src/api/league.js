@@ -94,7 +94,7 @@ function getLeague(req, res) {
       res.status(400).json(apiUtils.generateError(400, "Invalid league ID"));
       reject();
     } else {
-      databaseUtils.request('SELECT ID, Name, Description FROM Leagues WHERE ID=@ID AND Enabled=1', 0, [
+      databaseUtils.request('SELECT TOP(1) ID, Name, Description FROM Leagues WHERE ID=@ID AND Enabled=1', 1, [
         { name: "ID", type: tedious.TYPES.Int, value: leagueID }
       ])
         .then((data) => {
@@ -106,7 +106,7 @@ function getLeague(req, res) {
               name: values.Name.value,
               description: values.Description.value
             }))
-            res.status(200).json(responseData);
+            res.status(200).json(responseData[0]);
             resolve();
           }
         })
