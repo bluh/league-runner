@@ -5,9 +5,10 @@
   "main": "src/index.js",
   "scripts": {
     "test": "jest",
-    "start-server": "node src/index.js",
-    "start-react": "webpack watch --mode=development",
-    "start-dev": "webpack --mode=development && node src/index.js",
+    "start-server-dev": "node src/index.js development",
+    "start-react-dev": "webpack watch --env=development",
+    "start-server-prod": "node src/index.js production",
+    "start-react-prod": "webpack watch --env=production",
     "start": "webpack --mode=production && node src/index.js"
   },
   "repository": {
@@ -29,6 +30,7 @@
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "final-form": "^4.20.4",
+    "helmet": "^4.6.0",
     "jest-express": "^1.12.0",
     "jsonwebtoken": "^8.5.1",
     "react": "^17.0.2",
@@ -48,6 +50,7 @@
     "@babel/preset-react": "^7.14.5",
     "babel-jest": "^27.4.2",
     "babel-loader": "^8.2.2",
+    "clean-webpack-plugin": "^4.0.0",
     "css-loader": "^6.2.0",
     "eslint": "^8.3.0",
     "eslint-plugin-jest": "^25.3.0",
@@ -57,6 +60,6 @@
     "sass-loader": "^12.1.0",
     "style-loader": "^3.2.1",
     "webpack": "^5.48.0",
-    "webpack-cli": "^4.7.2"
+    "webpack-cli": "^4.9.1"
   }
 }
