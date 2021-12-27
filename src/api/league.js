@@ -49,10 +49,12 @@ function getUserLeagues(req, res) {
             resolve();
           })
           .catch(err => {
+            console.error(err);
             reject(apiUtils.generateError(500, "Error getting data", err));
           })
       })
       .catch(err => {
+        console.error(err);
         reject(apiUtils.generateError(500, "User is not logged in", err));
       })
   });
@@ -60,20 +62,18 @@ function getUserLeagues(req, res) {
 
 function getQueensInLeague(req, res) {
   return new Promise((resolve, reject) => {
-    const queenID = req.params.queenID;
-    if (queenID === null || queenID === undefined) {
+    const leagueID = req.params.leagueID;
+    if (leagueID === null || leagueID === undefined) {
       res.status(400).json(apiUtils.generateError(400, "Invalid league ID"));
       reject();
     } else {
-      databaseUtils.request('SELECT * FROM WeeklyQueenScores WHERE LeagueID=@LeagueID', 0, [
-        { name: "LeagueID", type: tedious.TYPES.Int, value: queenID }
+      databaseUtils.request('SELECT * FROM TotalQueenScores WHERE LeagueID=@LeagueID', 0, [
+        { name: "LeagueID", type: tedious.TYPES.Int, value: leagueID }
       ])
         .then((data) => {
           const responseData = data.map(values => ({
-            episodeID: values.EpisodeID.value,
-            episodeNumber: values.EpisodeNumber.value,
-            queenID: values.QueenID.value,
-            queenName: values.QueenName.value,
+            id: values.ID.value,
+            name: values.Name.value,
             points: values.Points.value
           }));
 
@@ -81,6 +81,7 @@ function getQueensInLeague(req, res) {
           resolve();
         })
         .catch(err => {
+          console.error(err);
           reject(apiUtils.generateError(500, "Error getting data", err));
         })
     }
@@ -111,6 +112,7 @@ function getLeague(req, res) {
           }
         })
         .catch((err) => {
+          console.error(err);
           reject(apiUtils.generateError(500, "Error getting data", err));
         })
     }
@@ -168,11 +170,13 @@ function newLeague(req, res) {
                     if (loadError || loadRows === 0) {
                       console.error('Error loading bulk rows for new league', loadError);
                       doneTransaction("Error loading bulk rows for new league", err => {
+                        console.error(err);
                         reject(apiUtils.generateError(500, "Error loading bulk rows for new league", err));
                       });
                     } else {
                       doneTransaction(null, (transactionError) => {
                         if (transactionError){
+                          console.error(transactionError);
                           return reject(apiUtils.generateError(500, transactionError)); 
                         }
                         res.status(200).json(newId);
@@ -196,6 +200,7 @@ function newLeague(req, res) {
                 })
                 .catch(leagueError => {
                   doneTransaction("Error creating new league", () => {
+                    console.error(leagueError);
                     reject(apiUtils.generateError(500, "Error creating new league", leagueError));
                   })
                 })
@@ -227,12 +232,12 @@ function registerApi(app) {
   /**
    * @openapi
    * 
-   * /api/league/{queenID}/queens:
+   * /api/league/{leagueID}/queens:
    *  get:
    *    description: Get the Queens in a League
    *    tags: [League]
    *    parameters:
-   *      - name: queenID
+   *      - name: leagueID
    *        in: path
    *        required: true
    *        type: integer
@@ -240,7 +245,7 @@ function registerApi(app) {
    *      200:
    *        description: The Queens in the league
    */
-  app.get('/api/league/:queenID/queens', apiUtils.wrapHandler(getQueensInLeague));
+  app.get('/api/league/:leagueID/queens', apiUtils.wrapHandler(getQueensInLeague));
 
 
   /**
