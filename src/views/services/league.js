@@ -15,8 +15,14 @@ function newLeague(data){
     .then(response => response.data);
 }
 
+function getLeagueUsers(id){
+  return api.get(`/league/${id}/users`)
+    .then(response => response.data);
+}
+
 export default {
   getUserLeagues,
   getLeague,
-  newLeague
+  newLeague,
+  getLeagueUsers
 }

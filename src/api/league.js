@@ -60,34 +60,6 @@ function getUserLeagues(req, res) {
   });
 }
 
-function getQueensInLeague(req, res) {
-  return new Promise((resolve, reject) => {
-    const leagueID = req.params.leagueID;
-    if (leagueID === null || leagueID === undefined) {
-      res.status(400).json(apiUtils.generateError(400, "Invalid league ID"));
-      reject();
-    } else {
-      databaseUtils.request('SELECT * FROM TotalQueenScores WHERE LeagueID=@LeagueID', 0, [
-        { name: "LeagueID", type: tedious.TYPES.Int, value: leagueID }
-      ])
-        .then((data) => {
-          const responseData = data.map(values => ({
-            id: values.ID.value,
-            name: values.Name.value,
-            points: values.Points.value
-          }));
-
-          res.status(200).json(responseData);
-          resolve();
-        })
-        .catch(err => {
-          console.error(err);
-          reject(apiUtils.generateError(500, "Error getting data", err));
-        })
-    }
-  })
-}
-
 function getLeague(req, res) {
   return new Promise((resolve, reject) => {
     const leagueID = req.params.leagueID;
@@ -210,6 +182,66 @@ function newLeague(req, res) {
   })
 }
 
+function getQueensInLeague(req, res) {
+  return new Promise((resolve, reject) => {
+    const leagueID = req.params.leagueID;
+    if (leagueID === null || leagueID === undefined) {
+      res.status(400).json(apiUtils.generateError(400, "Invalid league ID"));
+      reject();
+    } else {
+      databaseUtils.request('SELECT * FROM TotalQueenScores WHERE LeagueID=@LeagueID', 0, [
+        { name: "LeagueID", type: tedious.TYPES.Int, value: leagueID }
+      ])
+        .then((data) => {
+          const responseData = data.map(values => ({
+            id: values.ID.value,
+            name: values.Name.value,
+            points: values.Points.value
+          }));
+
+          res.status(200).json(responseData);
+          resolve();
+        })
+        .catch(err => {
+          console.error(err);
+          reject(apiUtils.generateError(500, "Error getting data", err));
+        })
+    }
+  })
+}
+
+function getUsersInLeague(req, res) {
+  return new Promise((resolve, reject) => {
+    const leagueID = req.params.leagueID;
+    if (leagueID === null || leagueID === undefined) {
+      res.status(400).json(apiUtils.generateError(400, "Invalid league ID"));
+      reject();
+    } else {
+      databaseUtils.request('SELECT * FROM TotalUserScores WHERE LeagueID=@LeagueID', 0, [
+        { name: "LeagueID", type: tedious.TYPES.Int, value: leagueID }
+      ])
+        .then((data) => {
+          const responseData = data.map(values => ({
+            id: values.UserID.value,
+            name: values.Username.value,
+            points: values.UserPoints.value,
+            role: {
+              id: values.LeagueRoleID.value,
+              name: values.LeagueRoleName.value
+            }
+          }));
+
+          res.status(200).json(responseData);
+          resolve();
+        })
+        .catch(err => {
+          console.error(err);
+          reject(apiUtils.generateError(500, "Error getting data", err));
+        })
+    }
+  })
+}
+
 function registerApi(app) {
   /**
    * @openapi
@@ -227,25 +259,6 @@ function registerApi(app) {
    *        description: The Leagues for the current User
    */
   app.get('/api/leagues', apiUtils.wrapHandler(getUserLeagues));
-
-
-  /**
-   * @openapi
-   * 
-   * /api/league/{leagueID}/queens:
-   *  get:
-   *    description: Get the Queens in a League
-   *    tags: [League]
-   *    parameters:
-   *      - name: leagueID
-   *        in: path
-   *        required: true
-   *        type: integer
-   *    responses:
-   *      200:
-   *        description: The Queens in the league
-   */
-  app.get('/api/league/:leagueID/queens', apiUtils.wrapHandler(getQueensInLeague));
 
 
   /**
@@ -284,6 +297,44 @@ function registerApi(app) {
    *        description: The Queens in the league
    */
   app.post('/api/league', roleUtils.authorize(['User']), apiUtils.wrapHandler(newLeague));
+
+
+  /**
+   * @openapi
+   * 
+   * /api/league/{leagueID}/queens:
+   *  get:
+   *    description: Get the Queens in a League
+   *    tags: [League]
+   *    parameters:
+   *      - name: leagueID
+   *        in: path
+   *        required: true
+   *        type: integer
+   *    responses:
+   *      200:
+   *        description: The Queens in the league
+   */
+  app.get('/api/league/:leagueID/queens', roleUtils.authorize(['User']), apiUtils.wrapHandler(getQueensInLeague));
+
+
+  /**
+   * @openapi
+   * 
+   * /api/league/{leagueID}/users:
+   *  get:
+   *    description: Get the Users in a League
+   *    tags: [League]
+   *    parameters:
+   *      - name: leagueID
+   *        in: path
+   *        required: true
+   *        type: integer
+   *    responses:
+   *      200:
+   *        description: The Users in the league
+   */
+  app.get('/api/league/:leagueID/users', roleUtils.authorize(['User']), apiUtils.wrapHandler(getUsersInLeague));
 }
 
 module.exports = {

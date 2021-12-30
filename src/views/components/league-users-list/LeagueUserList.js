@@ -1,16 +1,16 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import queenActions from "../../reducers/queens/action";
+import leagueActions from "../../reducers/league/action";
 import { Table } from "antd";
 
-class QueenList extends React.Component {
+class LeagueUserList extends React.Component {
   constructor(props){
     super(props);
 
     this.cols = [
       {
-        title: "Queen",
+        title: "User",
         dataIndex: "name",
         key: "name"
       },
@@ -18,19 +18,12 @@ class QueenList extends React.Component {
         title: "Points",
         dataIndex: "points",
         key: "points"
-      },
-      // {
-      //   title: "",
-      //   key: "actions",
-      //   render: (_, record) => (
-      //     <Button href={`/stats/queen/${record.id}`}>Stats</Button>
-      //   )
-      // }
+      }
     ]
   }
   componentDidUpdate(prevProps){
     if(this.props.leagueID && this.props.leagueID !== prevProps.leagueID){
-      this.props.dispatch(queenActions.getQueensList(this.props.leagueID));
+      this.props.dispatch(leagueActions.getLeagueUsers(this.props.leagueID));
     }
   }
 
@@ -39,36 +32,37 @@ class QueenList extends React.Component {
       <Table
         loading={this.props.loading}
         rowKey={item => item.id}
-        dataSource={this.props.queensList}
+        dataSource={this.props.usersList}
         columns={this.cols}
         pagination={{
           hideOnSinglePage: true
         }}
-        locale={{emptyText: "No queens in this league!"}}
+        locale={{emptyText: "No users in this league!"}}
       />
     )
   }
 }
 
-QueenList.propTypes = {
+LeagueUserList.propTypes = {
   leagueID: PropTypes.number,
   loading: PropTypes.bool,
-  queensList: PropTypes.array
+  usersList: PropTypes.array
 }
 
-QueenList.defaultProps = {
+LeagueUserList.defaultProps = {
   leagueID: null,
   loading: false,
-  queensList: []
+  usersList: []
 }
 
 const mapStateToProps = (state) => {
-  const { loading, queensList } = state.Queens;
+  const { loadingLeagueUsers, leagueUsers } = state.League;
+  console.log(state.League);
 
   return {
-    queensList,
-    loading
+    usersList: leagueUsers,
+    loading: loadingLeagueUsers
   }
 }
 
-export default connect(mapStateToProps)(QueenList);
+export default connect(mapStateToProps)(LeagueUserList);

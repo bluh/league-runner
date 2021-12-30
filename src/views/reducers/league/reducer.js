@@ -5,6 +5,8 @@ const initialState = {
   loadingUserLeagues: false,
   league: {},
   loadingLeague: false,
+  leagueUsers: [],
+  loadingLeagueUsers: false
 }
 
 export default function(state = initialState, action){
@@ -57,6 +59,23 @@ export default function(state = initialState, action){
         ...state,
         league: [],
         loadingLeague: false
+      }
+    case constants.GET_LEAGUE_USERS:
+      return {
+        ...state,
+        loadingLeagueUsers: true
+      };
+    case constants.GET_LEAGUE_USERS_SUCCESS:
+      return {
+        ...state,
+        leagueUsers: action.data,
+        loadingLeagueUsers: false
+      }
+    case constants.GET_LEAGUE_USERS_FAILURE:
+      return {
+        ...state,
+        leagueUsers: [],
+        loadingLeagueUsers: false
       }
     default:
       return state;
