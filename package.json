@@ -42,6 +42,7 @@
     "swagger-jsdoc": "^6.1.0",
     "swagger-ui-express": "^4.2.0",
     "tedious": "^9.2.2",
+    "tinygradient": "^1.1.5",
     "validate.js": "^0.13.1"
   },
   "devDependencies": {

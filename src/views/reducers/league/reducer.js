@@ -41,7 +41,7 @@ export default function(state = initialState, action){
     case constants.NEW_LEAGUE_FAILURE:
       return {
         ...state,
-        loadingLeague: true,
+        loadingLeague: false,
       }
     case constants.GET_LEAGUE:
       return {

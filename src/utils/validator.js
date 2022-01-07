@@ -50,8 +50,7 @@ validator.validators.array = function(value, options){
 
 const types = require('../types/types');
 
-validator.types = {
-  ...types
-}
-
-module.exports = validator;
+module.exports = {
+  validator,
+  types
+};

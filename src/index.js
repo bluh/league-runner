@@ -42,21 +42,23 @@ app.use((err, _req, res, _next) => {
   }
 })
 
-// Create and register swagger documentation
-const options = {
-  definition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'Drag League',
-      version: '1.0.0',
+if(!production){
+  // Create and register swagger documentation
+  const options = {
+    definition: {
+      openapi: '3.0.0',
+      info: {
+        title: 'Drag League',
+        version: '1.0.0',
+      },
     },
-  },
-  apis: ['./src/api/*.js', './src/types/*.js'],
-};
-
-const swaggerSpec = swaggerJSDoc(options);
-
-app.use('/api/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+    apis: ['./src/api/*.js', './src/types/*.js'],
+  };
+  
+  const swaggerSpec = swaggerJSDoc(options);
+  
+  app.use('/api/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+}
 
 // Use static site routing
 app.use('/', express.static('public'), (_, res) => {

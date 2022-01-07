@@ -10,6 +10,7 @@ import { UserPicker } from "../../components";
 import leagueActions from "../../reducers/league/action";
 import LeagueBreadcrumb from "./LeagueBreadcrumb";
 import validateJs from "validate.js";
+import { FORM_ERROR } from "final-form";
 
 class LeagueNew extends React.Component {
   constructor(props){
@@ -120,15 +121,19 @@ class LeagueNew extends React.Component {
         <LeagueBreadcrumb leagueName="New League"/>
         <h1>New League</h1>
         <Form
+          keepDirtyOnReinitialize
           onSubmit={values => {
             const newData = {
               ...values,
+              drafts: values.drafts * 1,
               users: values.users.filter(v => v.user !== this.props.userID).map(v => ({role: v.role, user: v.user}))
             }
 
             this.props.createLeague(newData, err => {
               if(err){
-                message.error("Error creating new League");
+                const errorText = err.response?.data?.message || "";
+                message.error(`Error creating new League: ${errorText}`);
+                return { [FORM_ERROR]: errorText };
               }else{
                 message.success("New League created");
                 this.props.history.push("/leagues");
@@ -154,6 +159,21 @@ class LeagueNew extends React.Component {
                   maximum: 200,
                   message: "Please enter a shorter description"
                 }
+              },
+              drafts: {
+                presence: {
+                  allowEmpty: false,
+                  message: "Please specify the number of drafts on a team"
+                },
+                numericality: {
+                  onlyInteger: true,
+                  greaterThan: 0,
+                  notValid: "Please specify the number of drafts on a team",
+                  notGreaterThan: "Please specify the number of drafts on a team"
+                }
+              },
+              allowLeaders: {
+                type: "boolean"
               }
             }, {fullMessages: false});
 
@@ -193,6 +213,8 @@ class LeagueNew extends React.Component {
           initialValues={{
             name: "",
             description: "",
+            drafts: 1,
+            allowLeaders: true,
             users: [
               {
                 role: 3,
@@ -224,34 +246,67 @@ class LeagueNew extends React.Component {
                 <Prompt message="You have unsaved changes. Navigating away from this page will discard these changes." when={!pristine} />
                 <Row gutter={[16,32]}>
                   <Col span={14}>
-                    <Card title="Description">
-                      
-                      <Field name="name">
-                        {({ input, meta }) => (
-                          <StyleForm.Item
-                            required
-                            colon
-                            label="League Name"
-                            validateStatus={meta.touched && meta.error ? "error" : "success"}
-                            help={(meta.touched && meta.error) ? meta.error : null}
-                          >
-                            <Input type="text" {...input}/>
-                          </StyleForm.Item>
-                        )}
-                      </Field>
-                      <Field name="description">
-                        {({ input, meta }) => (
-                          <StyleForm.Item
-                            colon
-                            label="League Description"
-                            validateStatus={meta.touched && meta.error ? "error" : "success"}
-                            help={(meta.touched && meta.error) ? meta.error : null}
-                          >
-                            <Input.TextArea maxLength="200"{...input} />
-                          </StyleForm.Item>
-                        )}
-                      </Field>
-                    </Card>
+                    <Row gutter={[16, 32]}>
+                      <Col span={24}>
+                        <Card title="Description">
+                          <Field name="name">
+                            {({ input, meta }) => (
+                              <StyleForm.Item
+                                required
+                                colon
+                                label="League Name"
+                                validateStatus={meta.touched && meta.error ? "error" : "success"}
+                                help={(meta.touched && meta.error) ? meta.error : null}
+                              >
+                                <Input type="text" {...input}/>
+                              </StyleForm.Item>
+                            )}
+                          </Field>
+                          <Field name="description">
+                            {({ input, meta }) => (
+                              <StyleForm.Item
+                                colon
+                                label="League Description"
+                                validateStatus={meta.touched && meta.error ? "error" : "success"}
+                                help={(meta.touched && meta.error) ? meta.error : null}
+                              >
+                                <Input.TextArea maxLength="200"{...input} />
+                              </StyleForm.Item>
+                            )}
+                          </Field>
+                        </Card>
+                      </Col>
+                      <Col span={24}>
+                        <Card title="Drafting">
+                          <Field name="drafts">
+                            {({ input, meta }) => (
+                              <StyleForm.Item
+                                required
+                                colon
+                                label="Number of Draft Picks"
+                                validateStatus={meta.touched && meta.error ? "error" : "success"}
+                                help={(meta.touched && meta.error) ? meta.error : null}
+                              >
+                                <Input type="number" {...input} min={1}/>
+                              </StyleForm.Item>
+                            )}
+                          </Field>
+                          <Field name="allowLeaders" type="checkbox">
+                            {({ input, meta }) => (
+                              <StyleForm.Item
+                                required
+                                label="Allow Team Leaders?"
+                                validateStatus={meta.touched && meta.error ? "error" : "success"}
+                                help={(meta.touched && meta.error) ? meta.error : null}
+                              >
+                                {console.log(input)}
+                                <Input type="checkbox" {...input}/>
+                              </StyleForm.Item>
+                            )}
+                          </Field>
+                        </Card>
+                      </Col>
+                    </Row>
                   </Col>
                   <Col span={10}>
                     <Card title="Users">

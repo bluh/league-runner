@@ -98,6 +98,29 @@ function register(username, password){
   })
 }
 
+function passwordReset(username, password){
+  return new Promise((resolve, reject) => {
+    databaseUtils.request("SELECT Salt FROM Users WHERE Username = @username AND Enabled = 1", 1, [{name: "username", type: tedious.TYPES.NVarChar, value: username}])
+      .then(data => {
+        const salt = data[0].Salt.value;
+        crypto.pbkdf2(password, salt, process.env.PWORD_ITERATIONS * 1, process.env.PWORD_SIZE * 1, process.env.PWORD_DIGEST, (error, key) => {
+          if(error){
+            console.error(error);
+            reject("Incorrect Username or Password");
+          }else{
+            databaseUtils.request("UPDATE Users SET Hash=@Hash WHERE Username=@Username", 0, [
+              {name: "Username", type: tedious.TYPES.NVarChar, value: username},
+              {name: "Hash", type: tedious.TYPES.Binary, value: key},
+            ])
+          }
+        })
+      })
+      .catch(() => {
+        reject("Incorrect Username or Password");
+      })
+  })
+}
+
 /**
  * Generates a JWT with supplied user data
  * @param {{UserID: int, Username: string, Roles: string[]}} userData
@@ -121,5 +144,6 @@ function generateJWT(userData){
 module.exports = {
   login,
   register,
+  passwordReset,
   generateJWT
 }

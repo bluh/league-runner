@@ -2,7 +2,7 @@ const tedious = require('tedious');
 const roleUtils = require('../utils/role');
 const apiUtils = require('../utils/api');
 const databaseUtils = require('../utils/database');
-const validator = require('../utils/validator');
+const { validator, types} = require('../utils/validator');
 const crypto = require('crypto');
 
 function generateHash(connection) {
@@ -100,7 +100,7 @@ function newLeague(req, res) {
       return reject(apiUtils.generateError(400, "No payload"));
     }
 
-    const errors = validator.validate(data, validator.types.newLeague);
+    const errors = validator.validate(data, types.newLeague);
     if (errors) {
       return reject(apiUtils.generateError(400, "Invalid payload", { errors }));
     }
@@ -109,69 +109,64 @@ function newLeague(req, res) {
       .then(connection => {
         connection.transaction((newTransactionError, doneTransaction) => {
           if (newTransactionError){
+            connection.close();
             return reject(apiUtils.generateError(500, "Error creating transaction", newTransactionError))
           }
 
           generateHash(connection)
             .then(newHash => {
-              databaseUtils.requestWithConnection(connection, 'INSERT INTO Leagues(Name, Description, Hash, Enabled, Created) OUTPUT INSERTED.ID VALUES (@name, @description, @hash, 1, @created)', 0, [
-                {
-                  name: "name",
-                  type: tedious.TYPES.NVarChar,
-                  value: data.name
-                },
-                {
-                  name: "description",
-                  type: tedious.TYPES.NVarChar,
-                  value: data.description || null
-                },
-                {
-                  name: "hash",
-                  type: tedious.TYPES.NVarChar,
-                  value: newHash
-                },
-                {
-                  name: "created",
-                  type: tedious.TYPES.DateTime,
-                  value: new Date()
-                }
-              ])
-                .then((newLeagueData) => {
-                  const newId = newLeagueData[0].ID.value;
-                  const bulkLoad = connection.newBulkLoad('UserLeagues', (loadError, loadRows) => {
-                    if (loadError || loadRows === 0) {
-                      console.error('Error loading bulk rows for new league', loadError);
-                      doneTransaction("Error loading bulk rows for new league", err => {
-                        console.error(err);
-                        reject(apiUtils.generateError(500, "Error loading bulk rows for new league", err));
-                      });
-                    } else {
-                      doneTransaction(null, (transactionError) => {
-                        if (transactionError){
-                          console.error(transactionError);
-                          return reject(apiUtils.generateError(500, transactionError)); 
-                        }
-                        res.status(200).json(newId);
-                        resolve();
-                      })
-                    }
-                  })
-
-                  bulkLoad.addColumn('LeagueID', tedious.TYPES.Int, { nullable: false });
-                  bulkLoad.addColumn('UserID', tedious.TYPES.Int, { nullable: false });
-                  bulkLoad.addColumn('RoleID', tedious.TYPES.Int, { nullable: false });
-
-                  bulkLoad.addRow(newId, userID, 3);
-
-                  data.users.forEach(v => {
-                    if (v.user !== userID)
-                      bulkLoad.addRow(newId, v.user, v.role);
-                  })
-
-                  connection.execBulkLoad(bulkLoad);
+              databaseUtils.requestWithConnection(connection, "CreateLeague", 0, [
+                { name: "Creator", type: tedious.TYPES.Int, value: userID },
+                { name: "Name", type: tedious.TYPES.NVarChar, value: data.name },
+                { name: "Description", type: tedious.TYPES.NVarChar, value: data.description || null },
+                { name: "Drafts", type: tedious.TYPES.Int, value: data.drafts },
+                { name: "AllowLeaders", type: tedious.TYPES.Bit, value: data.allowLeaders },
+                { name: "Hash", type: tedious.TYPES.NVarChar, value: newHash },
+              ], true)
+                .then((createLeagueData) => {
+                  const createLeagueError = createLeagueData[0].Error.value;
+                  if(createLeagueError){
+                    connection.close();
+                    return reject(apiUtils.generateError(500, createLeagueData[0].Message.value));
+                  }else{
+                    const newId = createLeagueData[0].Message.value * 1;
+                    const bulkLoad = connection.newBulkLoad('UserLeagues', (loadError, loadRows) => {
+                      if (loadError || loadRows === 0) {
+                        console.error('Error loading bulk rows for new league', loadError);
+                        doneTransaction("Error loading bulk rows for new league", err => {
+                          console.error(err);
+                          reject(apiUtils.generateError(500, "Error loading bulk rows for new league", err));
+                        });
+                      } else {
+                        doneTransaction(null, (transactionError) => {
+                          if (transactionError){
+                            console.error(transactionError);
+                            connection.close();
+                            return reject(apiUtils.generateError(500, transactionError)); 
+                          }
+                          res.status(200).json(newId);
+                          resolve();
+                        })
+                      }
+                    })
+  
+                    bulkLoad.addColumn('LeagueID', tedious.TYPES.Int, { nullable: false });
+                    bulkLoad.addColumn('UserID', tedious.TYPES.Int, { nullable: false });
+                    bulkLoad.addColumn('RoleID', tedious.TYPES.Int, { nullable: false });
+  
+                    bulkLoad.addRow(newId, userID, 3);
+  
+                    data.users.forEach(v => {
+                      if (v.user !== userID)
+                        bulkLoad.addRow(newId, v.user, v.role);
+                    })
+  
+                    connection.execBulkLoad(bulkLoad);
+                  }
                 })
                 .catch(leagueError => {
                   doneTransaction("Error creating new league", () => {
+                    connection.close();
                     console.error(leagueError);
                     reject(apiUtils.generateError(500, "Error creating new league", leagueError));
                   })
@@ -189,14 +184,57 @@ function getQueensInLeague(req, res) {
       res.status(400).json(apiUtils.generateError(400, "Invalid league ID"));
       reject();
     } else {
-      databaseUtils.request('SELECT * FROM TotalQueenScores WHERE LeagueID=@LeagueID', 0, [
+      databaseUtils.request('SELECT ID, Name, TotalPoints, LeaderPoints, Rank FROM TotalQueenScores WHERE LeagueID=@LeagueID', 0, [
         { name: "LeagueID", type: tedious.TYPES.Int, value: leagueID }
       ])
         .then((data) => {
           const responseData = data.map(values => ({
             id: values.ID.value,
             name: values.Name.value,
-            points: values.Points.value
+            totalPoints: values.TotalPoints.value,
+            leaderPoints: values.LeaderPoints.value,
+            rank: values.Rank.value
+          }));
+
+          res.status(200).json(responseData);
+          resolve();
+        })
+        .catch(err => {
+          console.error(err);
+          reject(apiUtils.generateError(500, "Error getting data", err));
+        })
+    }
+  })
+}
+
+function getQueenDetails(req, res) {
+  return new Promise((resolve, reject) => {
+    const leagueID = req.params.leagueID;
+    const queenID = req.params.queenID;
+    if (leagueID === null || leagueID === undefined) {
+      res.status(400).json(apiUtils.generateError(400, "Invalid league ID"));
+      reject();
+    } else if (queenID === null || queenID === undefined) {
+      res.status(400).json(apiUtils.generateError(400, "Invalid queen ID"));
+      reject();
+    } else {
+      databaseUtils.request('SELECT EpisodeID, EpisodeNumber, EpisodeName, WeeklyPoints, WeeklyLeaderPoints, WeeklyRank, OverallPoints, OverallLeaderPoints, OverallRank FROM WeeklyQueenScores WHERE LeagueID=@LeagueID AND QueenID=@QueenID ORDER BY EpisodeID', 0, [
+        { name: "LeagueID", type: tedious.TYPES.Int, value: leagueID },
+        { name: "QueenID", type: tedious.TYPES.Int, value: queenID }
+      ])
+        .then((data) => {
+          const responseData = data.map(values => ({
+            episode: {
+              id: values.EpisodeID.value,
+              number: values.EpisodeNumber.value,
+              name: values.EpisodeName.value
+            },
+            weeklyPoints: values.WeeklyPoints.value,
+            weeklyLeaderPoints: values.WeeklyLeaderPoints.value,
+            weeklyRank: values.WeeklyRank.value,
+            overallPoints: values.OverallPoints.value,
+            overallLeaderPoints: values.OverallLeaderPoints.value,
+            overallRank: values.OverallRank.value
           }));
 
           res.status(200).json(responseData);
@@ -217,7 +255,7 @@ function getUsersInLeague(req, res) {
       res.status(400).json(apiUtils.generateError(400, "Invalid league ID"));
       reject();
     } else {
-      databaseUtils.request('SELECT * FROM TotalUserScores WHERE LeagueID=@LeagueID', 0, [
+      databaseUtils.request('SELECT UserID, Username, UserPoints, Rank, LeagueRoleID, LeagueRoleName FROM TotalUserScores WHERE LeagueID=@LeagueID', 0, [
         { name: "LeagueID", type: tedious.TYPES.Int, value: leagueID }
       ])
         .then((data) => {
@@ -225,6 +263,7 @@ function getUsersInLeague(req, res) {
             id: values.UserID.value,
             name: values.Username.value,
             points: values.UserPoints.value,
+            rank: values.Rank.value * 1,
             role: {
               id: values.LeagueRoleID.value,
               name: values.LeagueRoleName.value
@@ -335,6 +374,29 @@ function registerApi(app) {
    *        description: The Users in the league
    */
   app.get('/api/league/:leagueID/users', roleUtils.authorize(['User']), apiUtils.wrapHandler(getUsersInLeague));
+
+
+  /**
+   * @openapi
+   * 
+   * /api/league/{leagueID}/weekly/{queenID}:
+   *  get:
+   *    description: Get the weekly scores of a Queen in a League
+   *    tags: [League]
+   *    parameters:
+   *      - name: leagueID
+   *        in: path
+   *        required: true
+   *        type: integer
+   *      - name: queenID
+   *        in: path
+   *        required: true
+   *        type: integer
+   *    responses:
+   *      200:
+   *        description: The weekly scores of the Queen
+   */
+  app.get('/api/league/:leagueID/weekly/:queenID', roleUtils.authorize(['User']), apiUtils.wrapHandler(getQueenDetails));
 }
 
 module.exports = {

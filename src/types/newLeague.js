@@ -10,6 +10,10 @@
  *        type: string
  *      description:
  *        type: string
+ *      drafts:
+ *        type: number
+ *      allowLeaders:
+ *        type: boolean
  *      users:
  *        type: array
  *        items:
@@ -36,6 +40,18 @@ module.exports = {
     length: {
       maximum: 200
     }
+  },
+  drafts: {
+    type: "number",
+    presence: true,
+    numericality: {
+      onlyInteger: true,
+      greaterThan: 0
+    }
+  },
+  allowLeaders: {
+    type: "boolean",
+    presence: true
   },
   users: {
     array: {
