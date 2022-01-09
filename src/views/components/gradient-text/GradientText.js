@@ -1,11 +1,17 @@
 import React from "react";
 import PropTypes from "prop-types";
 import tinygradient from "tinygradient";
+import tinycolor from "tinycolor2";
 
 class GradientText extends React.Component {
   render() {
-    const gradient = tinygradient("#00CC00", "#CC0000").hsv(this.props.total, 'short');
-    const gradientColor = gradient ? gradient[this.props.index] : null;
+    var gradientColor;
+    if(this.props.total < 2) {
+      gradientColor = tinycolor("#00CC00");
+    }else{
+      const gradient = tinygradient("#00CC00", "#CC0000").hsv(this.props.total, 'short');
+      gradientColor = gradient ? gradient[this.props.index] : null;
+    }
     
     return (
       <span style={{ fontWeight: "bold", color: gradientColor ? gradientColor.toHexString() : "" }}>

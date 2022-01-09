@@ -1,33 +1,9 @@
 const tedious = require('tedious');
 const roleUtils = require('../utils/role');
 const apiUtils = require('../utils/api');
+const leagueUtils = require('../utils/league');
 const databaseUtils = require('../utils/database');
-const { validator, types} = require('../utils/validator');
-const crypto = require('crypto');
-
-function generateHash(connection) {
-  const newHash = crypto.randomBytes(8).toString('hex');
-  return new Promise((resolve, reject) => {
-    databaseUtils.requestWithConnection(connection, 'SELECT ID FROM Leagues WHERE Hash=@hash', 0, [
-      {
-        name: 'hash',
-        type: tedious.TYPES.NVarChar,
-        value: newHash
-      }
-    ])
-      .then(data => {
-        if (data.length === 0) {
-          resolve(newHash)
-        } else {
-          generateHash(connection)
-            .then(value => {
-              resolve(value);
-            })
-            .catch(err => reject(err))
-        }
-      })
-  })
-}
+const { validator, types } = require('../utils/validator');
 
 function getUserLeagues(req, res) {
   return new Promise((resolve, reject) => {
@@ -105,75 +81,14 @@ function newLeague(req, res) {
       return reject(apiUtils.generateError(400, "Invalid payload", { errors }));
     }
 
-    databaseUtils.connect()
-      .then(connection => {
-        connection.transaction((newTransactionError, doneTransaction) => {
-          if (newTransactionError){
-            connection.close();
-            return reject(apiUtils.generateError(500, "Error creating transaction", newTransactionError))
-          }
-
-          generateHash(connection)
-            .then(newHash => {
-              databaseUtils.requestWithConnection(connection, "CreateLeague", 0, [
-                { name: "Creator", type: tedious.TYPES.Int, value: userID },
-                { name: "Name", type: tedious.TYPES.NVarChar, value: data.name },
-                { name: "Description", type: tedious.TYPES.NVarChar, value: data.description || null },
-                { name: "Drafts", type: tedious.TYPES.Int, value: data.drafts },
-                { name: "AllowLeaders", type: tedious.TYPES.Bit, value: data.allowLeaders },
-                { name: "Hash", type: tedious.TYPES.NVarChar, value: newHash },
-              ], true)
-                .then((createLeagueData) => {
-                  const createLeagueError = createLeagueData[0].Error.value;
-                  if(createLeagueError){
-                    connection.close();
-                    return reject(apiUtils.generateError(500, createLeagueData[0].Message.value));
-                  }else{
-                    const newId = createLeagueData[0].Message.value * 1;
-                    const bulkLoad = connection.newBulkLoad('UserLeagues', (loadError, loadRows) => {
-                      if (loadError || loadRows === 0) {
-                        console.error('Error loading bulk rows for new league', loadError);
-                        doneTransaction("Error loading bulk rows for new league", err => {
-                          console.error(err);
-                          reject(apiUtils.generateError(500, "Error loading bulk rows for new league", err));
-                        });
-                      } else {
-                        doneTransaction(null, (transactionError) => {
-                          if (transactionError){
-                            console.error(transactionError);
-                            connection.close();
-                            return reject(apiUtils.generateError(500, transactionError)); 
-                          }
-                          res.status(200).json(newId);
-                          resolve();
-                        })
-                      }
-                    })
-  
-                    bulkLoad.addColumn('LeagueID', tedious.TYPES.Int, { nullable: false });
-                    bulkLoad.addColumn('UserID', tedious.TYPES.Int, { nullable: false });
-                    bulkLoad.addColumn('RoleID', tedious.TYPES.Int, { nullable: false });
-  
-                    bulkLoad.addRow(newId, userID, 3);
-  
-                    data.users.forEach(v => {
-                      if (v.user !== userID)
-                        bulkLoad.addRow(newId, v.user, v.role);
-                    })
-  
-                    connection.execBulkLoad(bulkLoad);
-                  }
-                })
-                .catch(leagueError => {
-                  doneTransaction("Error creating new league", () => {
-                    connection.close();
-                    console.error(leagueError);
-                    reject(apiUtils.generateError(500, "Error creating new league", leagueError));
-                  })
-                })
-            })
-        }, tedious.ISOLATION_LEVEL.REPEATABLE_READ)
+    leagueUtils.createLeague(userID, data)
+      .then(newID => {
+        res.status(200).json(newID);
       })
+      .catch(error => {
+        res.status(500).json(error);
+      })
+    
   })
 }
 

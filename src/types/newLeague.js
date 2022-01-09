@@ -18,6 +18,11 @@
  *        type: array
  *        items:
  *          $ref: '#/definitions/userListItem'
+ *      queens:
+ *        type: array
+ *        items:
+ *          type: string
+ * 
  *  userListItem:
  *    type: object
  *    properties:
@@ -71,6 +76,18 @@ module.exports = {
         }
       },
       unique: "user"
+    }
+  },
+  queens: {
+    array: {
+      each: {
+        type: "string",
+        presence: true
+      }
+    },
+    length: {
+      minimum: 1,
+      tooShort: "Please specify at least 1 queen"
     }
   }
 }

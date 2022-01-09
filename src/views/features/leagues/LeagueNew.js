@@ -9,7 +9,7 @@ import { Prompt } from "react-router-dom";
 import { UserPicker } from "../../components";
 import leagueActions from "../../reducers/league/action";
 import LeagueBreadcrumb from "./LeagueBreadcrumb";
-import validateJs from "validate.js";
+import validateJs, { isArray } from "validate.js";
 import { FORM_ERROR } from "final-form";
 
 class LeagueNew extends React.Component {
@@ -17,7 +17,12 @@ class LeagueNew extends React.Component {
     super(props);
 
     this.userKeys = 1;
+    this.queenKeys = 1;
     this.formRef = React.createRef();
+
+    this.state = {
+      leaving: false
+    }
   }
 
   getRoleMenu = (key, onClick) => {
@@ -115,6 +120,33 @@ class LeagueNew extends React.Component {
     form.change("users", newUsers);
   }
 
+  addQueen = (form, queens) => {
+    form.change("queens", [
+      ...queens,
+      {
+        name: "",
+        key: this.userKeys++
+      }
+    ])
+  }
+
+  changeQueenValue = (form, queens, index, newQueen) => {
+    const newQueens = [...queens];
+    newQueens[index] = {
+      ...queens[index],
+      name: newQueen
+    };
+
+    form.change("queens", newQueens);
+  }
+
+  removeQueen = (form, queens, index) => {
+    const newQueens = [...queens];
+    newQueens.splice(index, 1);
+
+    form.change("queens", newQueens);
+  }
+
   render() {
     return (
       <div className="league-new">
@@ -126,7 +158,8 @@ class LeagueNew extends React.Component {
             const newData = {
               ...values,
               drafts: values.drafts * 1,
-              users: values.users.filter(v => v.user !== this.props.userID).map(v => ({role: v.role, user: v.user}))
+              users: values.users.filter(v => v.user !== this.props.userID).map(v => ({role: v.role, user: v.user})),
+              queens: values.queens.map(v => v.name)
             }
 
             this.props.createLeague(newData, err => {
@@ -136,7 +169,11 @@ class LeagueNew extends React.Component {
                 return { [FORM_ERROR]: errorText };
               }else{
                 message.success("New League created");
-                this.props.history.push("/leagues");
+                this.setState({
+                  leaving: true
+                }, () => {
+                  this.props.history.push("/leagues");
+                })
               }
             });
           }}
@@ -174,6 +211,13 @@ class LeagueNew extends React.Component {
               },
               allowLeaders: {
                 type: "boolean"
+              },
+              queens: {
+                type: "array",
+                length: {
+                  minimum: 1,
+                  tooShort: "At least one queen must be registered."
+                }
               }
             }, {fullMessages: false});
 
@@ -208,6 +252,33 @@ class LeagueNew extends React.Component {
               }
             }
 
+            if(values.queens && validateJs.isArray(values.queens)){
+              const totalQueensErrors = {};
+
+              values.queens.forEach((queen, index) => {
+                const queenErrors = validateJs(queen, {
+                  name: {
+                    type: "string",
+                    presence: {
+                      message: "Please enter a queen name",
+                      allowEmpty: false
+                    }
+                  }
+                }, {fullMessages: false, format: "flat"});
+
+                if(queenErrors){
+                  totalQueensErrors[index] = queenErrors;
+                }
+              });
+
+              if(Object.keys(totalQueensErrors).length > 0){
+                errors = {
+                  ...errors,
+                  queens: totalQueensErrors
+                }
+              }
+            }
+
             return errors;
           }}
           initialValues={{
@@ -222,7 +293,8 @@ class LeagueNew extends React.Component {
                 name: this.props.username,
                 key: 0,
               }
-            ]
+            ],
+            queens: []
           }}
         >
           {({
@@ -243,7 +315,7 @@ class LeagueNew extends React.Component {
                 }}
                 onFinish={handleSubmit}
               >
-                <Prompt message="You have unsaved changes. Navigating away from this page will discard these changes." when={!pristine} />
+                <Prompt message="You have unsaved changes. Navigating away from this page will discard these changes." when={!pristine && !this.state.leaving} />
                 <Row gutter={[16,32]}>
                   <Col span={14}>
                     <Row gutter={[16, 32]}>
@@ -299,8 +371,51 @@ class LeagueNew extends React.Component {
                                 validateStatus={meta.touched && meta.error ? "error" : "success"}
                                 help={(meta.touched && meta.error) ? meta.error : null}
                               >
-                                {console.log(input)}
                                 <Input type="checkbox" {...input}/>
+                              </StyleForm.Item>
+                            )}
+                          </Field>
+                        </Card>
+                      </Col>
+                      <Col span={24}>
+                        <Card title="Queens">
+                          <Field name="queens">
+                            {({ input, meta }) => (
+                              <StyleForm.Item
+                                validateStatus={meta.touched && isArray(meta.error) && meta.error[0] ? "error" : "success"}
+                                help={(meta.touched && isArray(meta.error) && meta.error[0]) ? meta.error[0] : null}
+                                wrapperCol={{
+                                  span: 24
+                                }}
+                              >
+                                <Row style={{ paddingBottom: 16 }}>
+                                  <Col span={24}>
+                                    <Button type="dashed" onClick={() => this.addQueen(form, values.queens)} style={{ width: "100%" }}>
+                                      Add new queen
+                                    </Button>
+                                  </Col>
+                                </Row>
+                                {input.value && input.value.map((queenValue, index) => (
+                                  <StyleForm.Item
+                                    key={queenValue.key}
+                                    validateStatus={meta.error && meta.error[index] ? "error" : "success"}
+                                    help={(meta.error && meta.error[index]) ? meta.error[index] : null}
+                                    wrapperCol={{
+                                      span: 24
+                                    }}
+                                  >
+                                    <Row>
+                                      <Col flex="auto">
+                                        <Input value={queenValue.name} onChange={evt => this.changeQueenValue(form, values.queens, index, evt.target.value)} onFocus={input.onFocus} />
+                                      </Col>
+                                      <Col>
+                                        <Button type="text" onClick={() => this.removeQueen(form, values.queens, index)}>
+                                          <DeleteOutlined />
+                                        </Button>
+                                      </Col>
+                                    </Row>
+                                  </StyleForm.Item>
+                                ))}
                               </StyleForm.Item>
                             )}
                           </Field>
@@ -322,7 +437,7 @@ class LeagueNew extends React.Component {
                               </Row>
                               {input.value && input.value.map((userValue, index) => (
                                 <StyleForm.Item
-                                key={userValue.key}
+                                  key={userValue.key}
                                   validateStatus={meta.error && meta.error[index] ? "error" : "success"}
                                   help={(meta.error && meta.error[index]) ? meta.error[index] : null}
                                   wrapperCol={{

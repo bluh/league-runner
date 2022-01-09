@@ -28,7 +28,10 @@ validator.validators.array = function(value, options){
           }
         }
       }else{
-        errors.push(`@${index} is not an object`);
+        const error = validator.single(item, validateEach);
+        if(error){
+          errors.push(error);
+        }
       }
     })
   }

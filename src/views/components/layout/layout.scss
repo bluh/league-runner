@@ -35,8 +35,10 @@
     }
   }
 
-  .layout-content {
+  .layout-content-background {
     background-color: colors.$bg5;
+    padding-bottom: 32px;
+    min-height: 100%;
 
     .layout-content-container {
       margin-top: 40px;

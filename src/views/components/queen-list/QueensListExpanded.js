@@ -73,7 +73,6 @@ class QueensListExpanded extends React.Component {
     if(this.state.data){
       const rankIndex = rank * 1 - 1;
       const numRanks = this.props.totalQueens;
-      console.log(rank, rankIndex, numRanks);
 
       return <GradientText total={numRanks} index={rankIndex} text={rank}/>
     }
