@@ -7,6 +7,7 @@ import { Badge, Spin, Tabs } from "antd";
 import QueenList from "../../components/queen-list/QueenList";
 import { IdcardOutlined, KeyOutlined, LineChartOutlined, LoadingOutlined, OrderedListOutlined, ProfileOutlined, TeamOutlined, VideoCameraOutlined } from "@ant-design/icons";
 import LeagueUserList from "../../components/league-users-list/LeagueUserList";
+import { LeagueRulesList } from "../../components";
 
 class LeagueDetails extends React.Component {
 
@@ -40,7 +41,7 @@ class LeagueDetails extends React.Component {
             <Tabs.TabPane tab={this.renderTabTitle(this.props.queensLoading ? LoadingOutlined : IdcardOutlined, "Queens")} key="2" forceRender >
               <QueenList leagueID={this.props.league.id} />
             </Tabs.TabPane>
-            <Tabs.TabPane tab={this.renderTabTitle(this.props.queensLoading ? LoadingOutlined : TeamOutlined, "Players")} key="3" forceRender>
+            <Tabs.TabPane tab={this.renderTabTitle(this.props.loadingLeagueUsers ? LoadingOutlined : TeamOutlined, "Players")} key="3" forceRender>
               <LeagueUserList leagueID={this.props.league.id} />
             </Tabs.TabPane>
             <Tabs.TabPane tab={this.renderTabTitle(VideoCameraOutlined, "Episodes")} key="4">
@@ -49,8 +50,8 @@ class LeagueDetails extends React.Component {
             <Tabs.TabPane tab={this.renderTabTitle(LineChartOutlined, "Stats")} key="5">
               
             </Tabs.TabPane>
-            <Tabs.TabPane tab={this.renderTabTitle(KeyOutlined, "Rules")} key="6">
-              
+            <Tabs.TabPane tab={this.renderTabTitle(this.props.loadingLeagueRules ? LoadingOutlined : KeyOutlined, "Rules")} key="6" forceRender>
+              <LeagueRulesList leagueID={this.props.league.id} />
             </Tabs.TabPane>
             <Tabs.TabPane tab={this.renderTabTitle(OrderedListOutlined, "Surveys", 1)} key="7">
               
@@ -70,25 +71,28 @@ LeagueDetails.propTypes = {
     description: PropTypes.string
   }),
   queensLoading: PropTypes.bool,
-  loadingLeagueUsers: PropTypes.bool
+  loadingLeagueUsers: PropTypes.bool,
+  loadingLeagueRules: PropTypes.bool
 }
 
 LeagueDetails.defaultProps = {
   loading: false,
   league: {},
   queensLoading: true,
-  loadingLeagueUsers: true
+  loadingLeagueUsers: true,
+  loadingLeagueRules: true
 }
 
 const mapStateToProps = (state) => {
-  const { loadingLeague, league, loadingLeagueUsers } = state.League;
+  const { loadingLeague, league, loadingLeagueUsers, loadingLeagueRules } = state.League;
   const { loading: queensLoading } = state.Queens;
   
   return {
     loading: loadingLeague,
     league: league,
     queensLoading,
-    loadingLeagueUsers
+    loadingLeagueUsers,
+    loadingLeagueRules
   };
 }
 

@@ -196,6 +196,35 @@ function getUsersInLeague(req, res) {
   })
 }
 
+function getRulesInLeague(req, res) {
+  return new Promise((resolve, reject) => {
+    const leagueID = req.params.leagueID;
+    if (leagueID === null || leagueID === undefined) {
+      res.status(400).json(apiUtils.generateError(400, "Invalid league ID"));
+      reject();
+    } else {
+      databaseUtils.request('SELECT ID, DisplayName, Description, PointValue FROM Rules WHERE LeagueID=@LeagueID', 0, [
+        { name: "LeagueID", type: tedious.TYPES.Int, value: leagueID }
+      ])
+        .then((data) => {
+          const responseData = data.map(values => ({
+            id: values.ID.value,
+            name: values.DisplayName.value,
+            description: values.Description.value,
+            points: values.PointValue.value,
+          }));
+
+          res.status(200).json(responseData);
+          resolve();
+        })
+        .catch(err => {
+          console.error(err);
+          reject(apiUtils.generateError(500, "Error getting data", err));
+        })
+    }
+  })
+}
+
 function registerApi(app) {
   /**
    * @openapi
@@ -270,6 +299,25 @@ function registerApi(app) {
    *        description: The Queens in the league
    */
   app.get('/api/league/:leagueID/queens', roleUtils.authorize(['User']), apiUtils.wrapHandler(getQueensInLeague));
+
+
+  /**
+   * @openapi
+   * 
+   * /api/league/{leagueID}/rules:
+   *  get:
+   *    description: Get the Rules in a League
+   *    tags: [League]
+   *    parameters:
+   *      - name: leagueID
+   *        in: path
+   *        required: true
+   *        type: integer
+   *    responses:
+   *      200:
+   *        description: The Rules in the league
+   */
+  app.get('/api/league/:leagueID/rules', roleUtils.authorize(['User']), apiUtils.wrapHandler(getRulesInLeague));
 
 
   /**

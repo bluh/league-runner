@@ -34,9 +34,18 @@ function getLeagueUsers(id){
   }, leagueServices.getLeagueUsers, [id]);
 }
 
+function getLeagueRules(id){
+  return simpleReducerHelper({
+    request: constants.GET_LEAGUE_RULES,
+    success: constants.GET_LEAGUE_RULES_SUCCESS,
+    failure: constants.GET_LEAGUE_RULES_FAILURE
+  }, leagueServices.getLeagueRules, [id]);
+}
+
 export default {
   getUserLeagues,
   getLeague,
   createNewLeague,
-  getLeagueUsers
+  getLeagueUsers,
+  getLeagueRules
 }
