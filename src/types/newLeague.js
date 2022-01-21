@@ -22,6 +22,10 @@
  *        type: array
  *        items:
  *          type: string
+ *      rules:
+ *        type: array
+ *        items:
+ *          $ref: '#/definitions/ruleListItem'
  * 
  *  userListItem:
  *    type: object
@@ -29,6 +33,16 @@
  *      role:
  *        type: integer
  *      user:
+ *        type: integer
+ * 
+ *  ruleListItem:
+ *    type: object
+ *    properties:
+ *      name:
+ *        type: string
+ *      description:
+ *        type: string
+ *      points:
  *        type: integer
  */
 
@@ -82,12 +96,38 @@ module.exports = {
     array: {
       each: {
         type: "string",
-        presence: true
+        presence: true,
+        length: {
+          maximum: 100
+        }
       }
     },
     length: {
       minimum: 1,
       tooShort: "Please specify at least 1 queen"
+    }
+  },
+  rules: {
+    array: {
+      each: {
+        name: {
+          type: "string",
+          presence: true,
+          length: {
+            maximum: 100
+          }
+        },
+        points: {
+          type: "integer",
+          presence: true
+        },
+        description: {
+          type: "string",
+          length: {
+            maximum: 500
+          }
+        }
+      }
     }
   }
 }

@@ -30,18 +30,24 @@ function createLeague(userID, leagueData) {
                     return reject(apiUtils.generateError(500, createLeagueData[0].Message.value));
                   } else {
                     const newLeagueId = createLeagueData[0].Message.value * 1;
-                    bulkLoadUsers(connection, doneTransaction, userID, leagueData, newLeagueId)
+                    bulkLoadUsers(connection, userID, leagueData, newLeagueId)
+                      .then(() => bulkLoadQueens(connection, leagueData, newLeagueId))
+                      .then(() => bulkLoadRules(connection, leagueData, newLeagueId))
                       .then(() => {
-                        return bulkLoadQueens(connection, doneTransaction, leagueData, newLeagueId)
+                        doneTransaction(null, (transactionError) => {
+                          if (transactionError) {
+                            console.error(transactionError);
+                            reject(apiUtils.generateError(500, "Error finalizing transaction", transactionError));
+                          }else{
+                            resolve(newLeagueId);
+                          }
+                        })
                       })
-                      .then(() => {
-                        resolve(newLeagueId);
-                      })
-                      .catch(usersError => {
-                        doneTransaction(new Error("Error creating new users/queens"), () => {
+                      .catch(bulkLoadError => {
+                        doneTransaction(new Error(`Error bulk loading data: ${bulkLoadError}`), () => {
                           connection.close();
-                          console.error(usersError);
-                          reject(usersError);
+                          console.error(bulkLoadError);
+                          reject(apiUtils.generateError(500, "Error bulk loading new data", bulkLoadError));
                         })
                       })
                   }
@@ -59,17 +65,14 @@ function createLeague(userID, leagueData) {
   })
 }
 
-function bulkLoadUsers(connection, doneTransaction, userID, leagueData, newLeagueId){
+function bulkLoadUsers(connection, userID, leagueData, newLeagueId){
   return new Promise((resolve, reject) => {
     // Bulk load new users into league
     const bulkLoadUsers = connection.newBulkLoad('UserLeagues', (usersLoadError, usersLoadRows) => {
       // Finished user bulk load
       if (usersLoadError || usersLoadRows === 0) {
-        console.error('Error loading users for new league', usersLoadError);
-        doneTransaction("Error loading users for new league", err => {
-          console.error(err);
-          reject(apiUtils.generateError(500, "Error loading users for new league", err.message));
-        });
+        console.error('Error bulk loading users', usersLoadError);
+        reject("Error bulk loading users");
       } else {
         resolve();
       }
@@ -92,25 +95,16 @@ function bulkLoadUsers(connection, doneTransaction, userID, leagueData, newLeagu
   })
 }
 
-function bulkLoadQueens(connection, doneTransaction, leagueData, newLeagueId){
+function bulkLoadQueens(connection, leagueData, newLeagueId){
   return new Promise((resolve, reject) => {
     // Bulk load new queens into league
     const bulkLoadQueens = connection.newBulkLoad('Queens', (queensLoadError, queensLoadRows) => {
       // Finished queen bulk load
       if (queensLoadError || queensLoadRows === 0) {
-        console.error('Error loading queens for new league', queensLoadError);
-        doneTransaction("Error loading queens for new league", err => {
-          console.error(err);
-          return reject(apiUtils.generateError(500, "Error loading queens for new league", err.message));
-        });
+        console.error('Error bulk loading queens', queensLoadError);
+        reject("Error bulk loading queens");
       } else {
-        doneTransaction(null, (transactionError) => {
-          if (transactionError) {
-            console.error(transactionError);
-            return reject(apiUtils.generateError(500, "Error finalizing transaction", transactionError));
-          }
-          resolve(newLeagueId);
-        })
+        resolve();
       }
     })
 
@@ -126,6 +120,35 @@ function bulkLoadQueens(connection, doneTransaction, leagueData, newLeagueId){
     })
 
     connection.execBulkLoad(bulkLoadQueens);
+  })
+}
+
+function bulkLoadRules(connection, leagueData, newLeagueId){
+  return new Promise((resolve, reject) => {
+    // Bulk load new rules into league
+    const bulkLoadRules = connection.newBulkLoad('Rules', (rulesLoadError, rulesLoadRows) => {
+      // Finished rule bulk load
+      if (rulesLoadError || rulesLoadRows === 0) {
+        console.error('Error bulk loading rules', rulesLoadError);
+        reject('Error bulk loading rules');
+      } else {
+        resolve();
+      }
+    })
+
+    // Set data for rule load
+
+    bulkLoadRules.addColumn('LeagueID', tedious.TYPES.Int, { nullable: false });
+    bulkLoadRules.addColumn('DisplayName', tedious.TYPES.NVarChar, { nullable: false });
+    bulkLoadRules.addColumn('Description', tedious.TYPES.NVarChar, { nullable: true });
+    bulkLoadRules.addColumn('PointValue', tedious.TYPES.Int, { nullable: false });
+    bulkLoadRules.addColumn('Enabled', tedious.TYPES.Bit, { nullable: false });
+
+    leagueData.rules.forEach(r => {
+      bulkLoadRules.addRow(newLeagueId, r.name, r.description, r.points, true);
+    })
+
+    connection.execBulkLoad(bulkLoadRules);
   })
 }
 

@@ -39,11 +39,23 @@ function validateLeague(values) {
     queens: {
       type: "array",
       presence: {
-        allowEmpty: false
+        allowEmpty: false,
+        message: "At least one queen must be registered."
       },
       length: {
         minimum: 1,
         tooShort: "At least one queen must be registered."
+      }
+    },
+    rules: {
+      type: "array",
+      presence: {
+        allowEmpty: false,
+        message: "At least one rule must be created."
+      },
+      length: {
+        minimum: 1,
+        tooShort: "At least one rule must be created."
       }
     }
   }, { fullMessages: false });
@@ -107,6 +119,45 @@ function validateLeague(values) {
       }
     }
   }
+
+  // Validate rules array
+  if (values.rules && validate.isArray(values.rules)){
+    const totalRulesErrors = {};
+
+    values.rules.forEach((rule, index) => {
+      const ruleErrors = validate(rule, {
+        name: {
+          type: "string",
+          presence: {
+            message: "Please enter a rule name",
+            allowEmpty: false
+          }
+        },
+        description: {
+          type: "string",
+        },
+        points: {
+          presence: {
+            message: "Please enter a point value",
+            allowEmpty: false
+          }
+        }
+      }, { fullMessages: false });
+
+      if (ruleErrors) {
+        totalRulesErrors[index] = ruleErrors;
+      }
+    });
+
+    if (Object.keys(totalRulesErrors).length > 0) {
+      errors = {
+        ...errors,
+        rules: totalRulesErrors
+      }
+    }
+  }
+
+  console.log('errors', errors);
 
   return errors || null;
 }

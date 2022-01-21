@@ -5,8 +5,8 @@ import { withRouter } from "react-router";
 import { Prompt } from "react-router-dom";
 import leagueValidator from "../../validators/league";
 import { Field, Form } from "react-final-form";
-import { Tabs, Spin, Row, Col, Form as AntdForm, Input, Menu, Tooltip, Avatar, Button, Dropdown } from "antd";
-import { ProfileOutlined, IdcardOutlined, TeamOutlined, VideoCameraOutlined, KeyOutlined, ToolOutlined, SmileOutlined, UserOutlined, DeleteOutlined, ExclamationCircleTwoTone } from "@ant-design/icons";
+import { Tabs, Spin, Row, Col, Form as AntdForm, Input, Menu, Tooltip, Avatar, Button, Dropdown, Card, Space } from "antd";
+import { ProfileOutlined, IdcardOutlined, TeamOutlined, KeyOutlined, ToolOutlined, SmileOutlined, UserOutlined, DeleteOutlined, ExclamationCircleTwoTone } from "@ant-design/icons";
 import { isArray } from "validate.js";
 import { UserPicker } from "../../components";
 
@@ -16,6 +16,7 @@ class LeagueForm extends React.Component {
 
     this.userKeys = 1;
     this.queenKeys = 1;
+    this.ruleKeys = 1;
   }
 
   renderTabTitle(RequestedIcon, title, dirty, error){
@@ -150,6 +151,35 @@ class LeagueForm extends React.Component {
     form.change("queens", newQueens);
   }
 
+  addRules = (form, rules) => {
+    form.change("rules", [
+      ...(rules || []),
+      {
+        name: "",
+        description: "",
+        points: 0,
+        key: this.ruleKeys++
+      }
+    ])
+  }
+
+  changeRuleValue = (form, rules, index, key, value) => {
+    const newRules = [...rules];
+    newRules[index] = {
+      ...newRules[index],
+      [key]: value
+    };
+
+    form.change("rules", newRules);
+  }
+
+  removeRule = (form, rules, index) => {
+    const newRules = [...rules];
+    newRules.splice(index, 1);
+
+    form.change("rules", newRules);
+  }
+
   render() {
     return (
       <Form
@@ -160,7 +190,8 @@ class LeagueForm extends React.Component {
             ...values,
             drafts: values.drafts * 1,
             users: values.users.filter(v => v.user !== this.props.userID).map(v => ({role: v.role, user: v.user})),
-            queens: values.queens.map(v => v.name)
+            queens: values.queens.map(v => v.name),
+            rules: values.rules.map(v => ({ name: v.name, description: v.description, points: v.points * 1 }))
           }
 
           return this.props.onSubmit(newData);
@@ -210,7 +241,7 @@ class LeagueForm extends React.Component {
                             validateStatus={meta.touched && meta.error ? "error" : "success"}
                             help={(meta.touched && meta.error) ? meta.error : null}
                           >
-                            <Input type="text" {...input}/>
+                            <Input type="text" maxLength="20" {...input}/>
                           </AntdForm.Item>
                         )}
                       </Field>
@@ -223,7 +254,7 @@ class LeagueForm extends React.Component {
                             validateStatus={meta.touched && meta.error ? "error" : "success"}
                             help={(meta.touched && meta.error) ? meta.error : null}
                           >
-                            <Input.TextArea maxLength="200"{...input} />
+                            <Input.TextArea maxLength="200" {...input} />
                           </AntdForm.Item>
                         )}
                       </Field>
@@ -288,7 +319,7 @@ class LeagueForm extends React.Component {
                               >
                                 <Row>
                                   <Col flex="auto">
-                                    <Input value={queenValue.name} onChange={evt => this.changeQueenValue(form, values.queens, index, evt.target.value)} onFocus={input.onFocus} />
+                                    <Input maxLength="100" value={queenValue.name} onChange={evt => this.changeQueenValue(form, values.queens, index, evt.target.value)} onFocus={input.onFocus} />
                                   </Col>
                                   <Col>
                                     <Button type="text" onClick={() => this.removeQueen(form, values.queens, index)}>
@@ -360,11 +391,86 @@ class LeagueForm extends React.Component {
                     </Col>
                   </Row>
                 </Tabs.TabPane>
-                <Tabs.TabPane tab={this.renderTabTitle(VideoCameraOutlined, "Episodes")} key="4">
-                  <p>Add Episodes to your league. you can do this later</p>
-                </Tabs.TabPane>
-                <Tabs.TabPane tab={this.renderTabTitle(KeyOutlined, "Rules")} key="6">
-                  <p>Add Rules to your league. you can do this later</p>
+                <Tabs.TabPane tab={this.renderTabTitle(KeyOutlined, "Rules", dirtyFields.rules, errors.rules)} key="6">
+                  <p>Add Rules to your league. Each Rule decides how a queen in an episode gets points or loses points. When adding a new Episode, you will match queens to rules, deciding their score for the Episode.</p>
+                  <Row justify="center">
+                    <Col xs={24} lg={20}>
+                      <Field name="rules">
+                        {({ input, meta }) => (
+                          <>
+                            <Row style={{ paddingBottom: 16 }}>
+                              <Col span={24}>
+                                <Button type="dashed" onClick={() => this.addRules(form, values.rules)} style={{ width: "100%" }}>
+                                  Add new Rule
+                                </Button>
+                              </Col>
+                            </Row>
+                              
+                            <Space direction="vertical" style={{ width: "100%" }}>
+                              {input.value && input.value.map((ruleValue, index) => (
+                                <Card
+                                  size="small"
+                                  key={ruleValue.key}
+                                  extra={<Button type="text" onClick={() => this.removeRule(form, values.rules, index)}><DeleteOutlined /></Button>}
+                                >
+                                  <Row>
+                                    <Col span={18}>
+                                      <AntdForm.Item
+                                        label="Name"
+                                        colon
+                                        required
+                                        validateStatus={meta.error && meta.error[index] && meta.error[index].name ? "error" : "success"}
+                                        help={(meta.error && meta.error[index] && meta.error[index].name) ? meta.error[index].name : null}
+                                        labelCol={{ span: 4 }}
+                                      >
+                                        <Input maxLength="100" value={ruleValue.name} onChange={evt => this.changeRuleValue(form, values.rules, index, "name", evt.target.value)} onFocus={input.onFocus} />
+                                      </AntdForm.Item>
+                                    </Col>
+                                    
+                                    <Col span={6}>
+                                      <AntdForm.Item
+                                        label="Points"
+                                        colon
+                                        required
+                                        validateStatus={meta.error && meta.error[index] && meta.error[index].points ? "error" : "success"}
+                                        help={(meta.error && meta.error[index] && meta.error[index].points) ? meta.error[index].points : null}
+                                        labelCol={{ span: 10 }}
+                                      >
+                                        <Input
+                                          type="number"
+                                          value={ruleValue.points}
+                                          onChange={evt => this.changeRuleValue(form, values.rules, index, "points", evt.target.value)}
+                                          onFocus={input.onFocus}
+                                          style={
+                                            ruleValue.points
+                                              ? (ruleValue.points > 0 ? { color: "#00AA00" } : { color: "#AA0000" })
+                                              : {}
+                                          }
+                                        />
+                                      </AntdForm.Item>
+                                    </Col>
+                                  </Row>
+                                  <Row>
+                                    <Col span={24}>
+                                      <AntdForm.Item
+                                        label="Description"
+                                        colon
+                                        validateStatus={meta.error && meta.error[index] && meta.error[index].description ? "error" : "success"}
+                                        help={(meta.error && meta.error[index] && meta.error[index].description) ? meta.error[index].description : null}
+                                        labelCol={{ span: 3 }}
+                                      >
+                                        <Input maxLength="500" value={ruleValue.description} onChange={evt => this.changeRuleValue(form, values.rules, index, "description", evt.target.value)} onFocus={input.onFocus} />
+                                      </AntdForm.Item>
+                                    </Col>
+                                  </Row>
+                                </Card>
+                              ))}
+                            </Space>
+                          </>
+                        )}
+                      </Field>
+                    </Col>
+                  </Row>
                 </Tabs.TabPane>
               </Tabs>
             </AntdForm>
