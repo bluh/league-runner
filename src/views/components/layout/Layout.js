@@ -52,7 +52,7 @@ class Layout extends React.Component{
           </Row>
         </AntdLayout.Header>
         <AntdLayout.Content className="layout-content">
-          <Row justify="center" className="layout-content-background">
+          <Row justify="center">
             <Col className="layout-content-container" span={20}>
               {this.props.children}
             </Col>
