@@ -25,10 +25,16 @@ function getLeagueRules(id){
     .then(response => response.data);
 }
 
+function getLeagueEpisodes(id){
+  return api.get(`/league/${id}/episodes`)
+    .then(response => response.data);
+}
+
 export default {
   getUserLeagues,
   getLeague,
   newLeague,
   getLeagueUsers,
-  getLeagueRules
+  getLeagueRules,
+  getLeagueEpisodes
 }

@@ -41,11 +41,19 @@ function getLeagueRules(id){
     failure: constants.GET_LEAGUE_RULES_FAILURE
   }, leagueServices.getLeagueRules, [id]);
 }
+function getLeagueEpisodes(id){
+  return simpleReducerHelper({
+    request: constants.GET_LEAGUE_EPISODES,
+    success: constants.GET_LEAGUE_EPISODES_SUCCESS,
+    failure: constants.GET_LEAGUE_EPISODES_FAILURE
+  }, leagueServices.getLeagueEpisodes, [id]);
+}
 
 export default {
   getUserLeagues,
   getLeague,
   createNewLeague,
   getLeagueUsers,
-  getLeagueRules
+  getLeagueRules,
+  getLeagueEpisodes
 }

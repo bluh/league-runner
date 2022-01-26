@@ -7,7 +7,7 @@ import { Badge, Spin, Tabs } from "antd";
 import QueenList from "../../components/queen-list/QueenList";
 import { IdcardOutlined, KeyOutlined, LineChartOutlined, LoadingOutlined, OrderedListOutlined, ProfileOutlined, TeamOutlined, VideoCameraOutlined } from "@ant-design/icons";
 import LeagueUserList from "../../components/league-users-list/LeagueUserList";
-import { LeagueRulesList } from "../../components";
+import { LeagueEpisodesList, LeagueRulesList } from "../../components";
 
 class LeagueDetails extends React.Component {
 
@@ -44,8 +44,8 @@ class LeagueDetails extends React.Component {
             <Tabs.TabPane tab={this.renderTabTitle(this.props.loadingLeagueUsers ? LoadingOutlined : TeamOutlined, "Players")} key="3" forceRender>
               <LeagueUserList leagueID={this.props.league.id} />
             </Tabs.TabPane>
-            <Tabs.TabPane tab={this.renderTabTitle(VideoCameraOutlined, "Episodes")} key="4">
-              
+            <Tabs.TabPane tab={this.renderTabTitle(VideoCameraOutlined, "Episodes")} key="4" forceRender>
+              <LeagueEpisodesList leagueID={this.props.league.id} />
             </Tabs.TabPane>
             <Tabs.TabPane tab={this.renderTabTitle(LineChartOutlined, "Stats")} key="5">
               
