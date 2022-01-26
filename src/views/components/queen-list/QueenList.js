@@ -55,6 +55,7 @@ class QueenList extends React.Component {
   render() {
     return (
       <Table
+        bordered
         loading={this.props.loading}
         rowKey={item => item.id}
         dataSource={this.props.queensList}

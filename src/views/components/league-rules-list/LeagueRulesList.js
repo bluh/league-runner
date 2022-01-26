@@ -39,7 +39,7 @@ class LeagueRuleList extends React.Component {
   }
 
   renderPoints(points){
-    const pointsStyle = {};
+    const pointsStyle = { fontWeight: "bold" };
     if(points > 0){
       pointsStyle["color"] = "#00AA00";
     }else if(points < 0){
@@ -52,6 +52,7 @@ class LeagueRuleList extends React.Component {
   render() {
     return (
       <Table
+        bordered
         loading={this.props.loading}
         rowKey={item => item.id}
         dataSource={this.props.rulesList}

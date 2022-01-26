@@ -46,13 +46,14 @@ class LeagueUserList extends React.Component {
       const rankIndex = rank * 1 - 1;
       const numRanks = this.props.usersList.length;
 
-      return <GradientText total={numRanks} index={rankIndex} text={rank}/>
+      return <GradientText total={numRanks} index={rankIndex} text={`${rank}`}/>
     }
   }
 
   render() {
     return (
       <Table
+        bordered
         loading={this.props.loading}
         rowKey={item => item.id}
         dataSource={this.props.usersList}
