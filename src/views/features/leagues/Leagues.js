@@ -1,21 +1,19 @@
 import React from "react";
-import PropTypes from "prop-types";
-import { connect } from "react-redux";
 import { Route, Switch } from "react-router";
-import { Link } from "react-router-dom";
 import LeagueAdmin from "./LeagueAdmin";
 import LeagueDetails from "./LeagueDetails";
 import LeagueIndex from "./LeagueIndex";
 import LeagueNew from "./LeagueNew";
 
 import "./League.scss";
+import Authorizer from "../../components/authorizer/Authorizer";
 
 class Leagues extends React.Component {
   render() {
     const path = this.props.match.path;
     return (
       <div className="leagues-container">
-        {this.props.loggedIn ? (
+        <Authorizer>
           <Switch>
             <Route path={`${path}/`} exact>
               <LeagueIndex />
@@ -27,26 +25,10 @@ class Leagues extends React.Component {
 
             <Route path={`${path}/:leagueID/admin`} exact component={LeagueAdmin}/>
           </Switch>
-        ) : (
-          <p>You must be logged in to view this page. <Link to="/login">Login here</Link>.</p>
-        )}
+        </Authorizer>
       </div>
     )
   }
 }
 
-Leagues.propTypes = {
-  loggedIn: PropTypes.bool
-}
-
-Leagues.defaultProps = {
-  loggedIn: false
-}
-
-const mapStateToProps = (state) => {
-  const { loggedIn } = state.User;
-
-  return { loggedIn };
-}
-
-export default connect(mapStateToProps)(Leagues);
+export default Leagues;

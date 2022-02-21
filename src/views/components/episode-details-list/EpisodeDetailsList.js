@@ -7,7 +7,7 @@ import { Table } from "antd";
 import { GradientText, ScoreDisplay } from "..";
 import { connect } from "react-redux";
 
-class LeagueEpisodeExpanded extends React.Component {
+class EpisodeDetailsList extends React.Component {
   constructor(props){
     super(props);
 
@@ -48,6 +48,18 @@ class LeagueEpisodeExpanded extends React.Component {
   }
 
   componentDidMount(){
+    if(this.props.episodeID > 0){
+      this.loadEpisode();
+    }
+  }
+
+  componentDidUpdate(prevProps) {
+    if(this.props.episodeID !== prevProps.episodeID){
+      this.loadEpisode();
+    }
+  }
+
+  loadEpisode(){
     this.setState({
       loading: true
     })
@@ -163,13 +175,13 @@ class LeagueEpisodeExpanded extends React.Component {
   }
 }
 
-LeagueEpisodeExpanded.propTypes = {
+EpisodeDetailsList.propTypes = {
   episodeID: PropTypes.number,
   showLeaderPoints: PropTypes.bool,
   queensList: PropTypes.array
 }
 
-LeagueEpisodeExpanded.defaultProps = {
+EpisodeDetailsList.defaultProps = {
   episodeID: 0,
   showLeaderPoints: true,
   queensList: []
@@ -183,4 +195,4 @@ const mapStateToProps = (state) => {
   }
 }
 
-export default connect(mapStateToProps)(LeagueEpisodeExpanded);
+export default connect(mapStateToProps)(EpisodeDetailsList);

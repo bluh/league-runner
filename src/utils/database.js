@@ -58,11 +58,15 @@ function request(query, numRows, parameters, isProcedure=false) {
       .then(connection => {
         requestWithConnection(connection, query, numRows, parameters, isProcedure)
           .then(data => {
+            connection.close();
             resolve(data);
           })
           .catch(error => {
             reject(error);
           })
+      })
+      .catch(err => {
+        reject(err);
       })
   })
 }

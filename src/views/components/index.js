@@ -7,3 +7,4 @@ export { default as ScoreDisplay } from "./score-display/ScoreDisplay";
 export { default as GradientText } from "./gradient-text/GradientText";
 export { default as LeagueRulesList } from "./league-rules-list/LeagueRulesList";
 export { default as LeagueEpisodesList } from "./league-episodes-list/LeagueEpisodesList";
+export { default as EpisodeDetailsList } from "./episode-details-list/EpisodeDetailsList";

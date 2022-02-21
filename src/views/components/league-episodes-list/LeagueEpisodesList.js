@@ -4,7 +4,8 @@ import { connect } from "react-redux";
 import { Table } from "antd";
 import moment from "moment";
 import leagueActions from "../../reducers/league/action";
-import LeagueEpisodeExpanded from "./LeagueEpisodeExpanded";
+import EpisodeDetailsList from "../episode-details-list/EpisodeDetailsList";
+import { Link } from "react-router-dom";
 
 
 class LeagueEpisodesList extends React.Component {
@@ -24,7 +25,8 @@ class LeagueEpisodesList extends React.Component {
         title: "Episode",
         dataIndex: "name",
         key: "name",
-        sorter: (a,b) => a.name.localeCompare(b.name)
+        sorter: (a,b) => a.name.localeCompare(b.name),
+        render: (_, record) => <Link to={`/episode/${record.id}`}>{record.name}</Link>
       },
       {
         title: "Air Date",
@@ -52,7 +54,7 @@ class LeagueEpisodesList extends React.Component {
         dataSource={this.props.episodes}
         columns={this.cols}
         expandable={{
-          expandedRowRender: (record) => (<LeagueEpisodeExpanded episodeID={record.id} showLeaderPoints={this.props.showLeaderPoints}/>)
+          expandedRowRender: (record) => (<EpisodeDetailsList episodeID={record.id} showLeaderPoints={this.props.showLeaderPoints}/>)
         }}
         pagination={{
           hideOnSinglePage: true
