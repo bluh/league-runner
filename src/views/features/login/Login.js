@@ -2,7 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import { Button, Col, Form, Input, Row, Spin } from "antd";
 import { connect } from "react-redux";
-import { withRouter } from "react-router-dom";
+import { Link, withRouter } from "react-router-dom";
 import userActions from "../../reducers/user/action";
 
 class Login extends React.Component {
@@ -27,9 +27,9 @@ class Login extends React.Component {
         : (
           <Spin spinning={this.props.loading}>
             <Row justify="center">
-              <Col span={8}>
+              <Col span={12}>
                 <h1>Login</h1>
-                <Form ref={this.formRef} onFinish={this.formSubmit}>
+                <Form ref={this.formRef} onFinish={this.formSubmit} layout="vertical">
                   <Form.Item
                     name="username"
                     label="Username"
@@ -58,6 +58,9 @@ class Login extends React.Component {
                     <Button type="primary" htmlType="submit">
                       Log In
                     </Button>
+                  </Form.Item>
+                  <Form.Item>
+                    <Link to="forgot">Forgot password or username?</Link>
                   </Form.Item>
                 </Form>
               </Col>

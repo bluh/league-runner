@@ -15,8 +15,13 @@ function getUser(){
     .catch(() => null);
 }
 
-function register(username, password){
-  return api.post('user/register', {username, password})
+function register(username, password, email){
+  return api.post('user/register', {username, password, email})
+    .then(response => response.data);
+}
+
+function sendReset(hash, password) {
+  return api.post('user/reset', { hash, password })
     .then(response => response.data);
 }
 
@@ -24,5 +29,6 @@ export default {
   login,
   logout,
   getUser,
-  register
+  register,
+  sendReset
 }

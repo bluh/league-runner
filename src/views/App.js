@@ -3,7 +3,7 @@ import React from "react";
 import { Provider } from "react-redux";
 import { BrowserRouter, Switch, Route } from "react-router-dom";
 import { Authenticator, Layout } from "./components";
-import { Episode, Home, Leagues, Login, Register } from "./features";
+import { Episode, Forgot, Home, Leagues, Login, Register, Reset } from "./features";
 import store from "./store";
 
 import "antd/dist/antd.css";
@@ -22,6 +22,14 @@ class App extends React.Component{
 
                 <Route path="/login">
                   <Login />
+                </Route>
+
+                <Route path="/reset">
+                  <Reset />
+                </Route>
+
+                <Route path="/forgot">
+                  <Forgot />
                 </Route>
 
                 <Route path="/register">

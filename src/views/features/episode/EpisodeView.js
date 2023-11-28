@@ -26,8 +26,11 @@ class EpisodeView extends React.Component {
           <h2>Episode {this.props.episode.number}: {this.props.episode.name}</h2>
           <h3>Aired on {moment(this.props.episode.airDate).utc().format("MM-DD-yyyy")}</h3>
           <Collapse>
-            <Collapse.Panel header="Episode Details">
+            <Collapse.Panel header="Episode">
               <EpisodeDetailsList episodeID={this.props.episode.id} />
+            </Collapse.Panel>
+            <Collapse.Panel header="Queens">
+
             </Collapse.Panel>
           </Collapse>
         </div>

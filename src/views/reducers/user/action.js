@@ -26,17 +26,26 @@ function logoutUser(callback) {
   }, userServices.logout, [], callback);
 }
 
-function registerUser(username, password, callback){
+function registerUser(username, password, email, callback){
   return simpleReducerHelper({
     request: constants.REGISTER,
     success: constants.REGISTER_SUCCESS,
     failure: constants.REGISTER_FAILURE
-  }, userServices.register, [username, password], callback);
+  }, userServices.register, [username, password, email], callback);
+}
+
+function resetPassword(hash, password, callback){
+  return simpleReducerHelper({
+    request: constants.RESET,
+    success: constants.RESET_SUCCESS,
+    failure: constants.RESET_FAILURE
+  }, userServices.sendReset, [hash, password], callback);
 }
 
 export default {
   authenticateUser,
   loginUser,
   logoutUser,
-  registerUser
+  registerUser,
+  resetPassword
 }

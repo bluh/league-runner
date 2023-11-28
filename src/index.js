@@ -35,8 +35,12 @@ apis.forEach(v => {
 
 // Catch errors
 app.use((err, _req, res, _next) => {
-  if(typeof err === 'object' && err.error){
-    res.status(err.error).json(err);
+  if(typeof err === 'object' && err.error && err.DLError){
+    res.status(err.error).json({
+      error: err.error,
+      message: err.message,
+      inner: err.inner
+    });
   }else{
     res.status(500).json(err);
   }

@@ -1,6 +1,7 @@
 const userUtils = require('../utils/user');
 const roleUtils = require('../utils/role');
 const apiUtils = require('../utils/api');
+const mailUtils = require('../utils/mail');
 
 function registerApi(app) {
   /**
@@ -86,8 +87,8 @@ function registerApi(app) {
    */
   app.post('/api/user/register', (req, res) => {
     const requestBody = req.body;
-    if(requestBody.username && requestBody.password){
-      userUtils.register(requestBody.username, requestBody.password)
+    if(requestBody.username && requestBody.password && requestBody.email){
+      userUtils.register(requestBody.username, requestBody.password, requestBody.email)
         .then((userData) => {
           const token = userUtils.generateJWT(userData);
           res
@@ -127,6 +128,66 @@ function registerApi(app) {
   app.get('/api/user/logout', (_req, res) => {
     res.clearCookie("DLAccess");
     res.status(200).send();
+  })
+
+
+  /**
+   * @openapi
+   * /api/user/reset:
+   *  get:
+   *    description: Sends a reset request to a user's email
+   *    tags: [User]
+   *    parameters:
+   *    - name: email
+   *      in: query
+   *    - name: username
+   *      in: query
+   *    responses:
+   *      200:
+   *        description: An email has been sent to the user's email with a link to reset their password
+   *  post:
+   *    description: Resets a user's password with a given hash
+   *    tags: [User]
+   *    requestBody:
+   *      content:
+   *        application/json:
+   *          schema:
+   *            type: object
+   *            required:
+   *              - hash
+   *              - password
+   *            properties:
+   *              hash:
+   *                type: string
+   *              password:
+   *                type: string
+   *    responses:
+   *      200:
+   *        description: The password for the account with the given hash has been changed
+   * 
+   */
+  app.get('/api/user/reset', (req, res) => {
+    const requestQuery = req.query;
+    userUtils.generatePasswordResetCode(requestQuery.email, requestQuery.username)
+      .then(({hash, email}) => {
+        mailUtils.sendResetEmail(hash.toString('base64'), email);
+        res.status(200).send()
+      })
+      .catch(ex => {
+        res.status(400).json(apiUtils.generateError(400, "Error creating reset request", ex));
+      })
+  });
+
+  app.post('/api/user/reset', (req, res) => {
+    const requestBody = req.body;
+    const hash = Buffer.from(requestBody.hash, "base64");
+    userUtils.passwordReset(hash, requestBody.password)
+      .then(_ => {
+        res.status(200).send();
+      })
+      .catch(ex => {
+        res.status(400).json(apiUtils.generateError(400, "Error verifying reset request", ex));
+      })
   })
   
 

@@ -13,9 +13,10 @@ const { STATUS_CODES } = require('http');
  * @param {int} queryDetails.queryParams[].type Type of parameter in query
  * @param {string} queryDetails.queryParams[].param Name of parameter in url to use in query
  * @param {Function} dataCallback Callback to call for every row returned by the query, to transform the data
+ * @param {Boolean?} returnOne Only return the first result from the query
  * @returns Promise handling the request/response from Express and rejects with errors
  */
-function queryDatabase(req, res, paramsList, queryDetails, dataCallback) {
+function queryDatabase(req, res, paramsList, queryDetails, dataCallback, returnOne = false) {
   return new Promise((resolve, reject) => {
     const params = {};
     const paramSuccess = paramsList.every(param => {
@@ -40,7 +41,11 @@ function queryDatabase(req, res, paramsList, queryDetails, dataCallback) {
         })
         .then(data => {
           const responseData = data.map(dataCallback);
-          resolve(res.status(200).json(responseData));
+          if(returnOne){
+            resolve(res.status(200).json(responseData[0]));
+          }else{
+            resolve(res.status(200).json(responseData));
+          }
         })
         .catch(mappingError => {
           console.log("Mapping Error:", mappingError);

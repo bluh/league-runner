@@ -66,6 +66,17 @@ export default function(state = initialState, action){
         ...state,
         loading: false
       }
+    case constants.RESET:
+      return {
+        ...state,
+        loading: true
+      }
+    case constants.RESET_SUCCESS:
+    case constants.RESET_FAILURE:
+      return {
+        ...state,
+        loading: false
+      }
     default:
       return state;
   }

@@ -13,7 +13,7 @@ class Register extends React.Component {
   }
 
   formSubmit = (data) => {
-    this.props.register(data.username, data.password, (err) => {
+    this.props.register(data.username, data.password, data.email, (err) => {
       if(!err)
         this.props.history.push('/');
     })
@@ -27,20 +27,29 @@ class Register extends React.Component {
         : (
           <Spin spinning={this.props.loading}>
             <Row justify="center">
-              <Col span={8}>
+              <Col span={12}>
                 <h1>Register</h1>
-                <Form ref={this.formRef} onFinish={this.formSubmit}>
+                <Form ref={this.formRef} onFinish={this.formSubmit} layout="vertical">
                   <Form.Item
                     name="username"
                     label="Username"
+                    validateFirst
                     rules={[
                       {
                         required: true,
                         message: "Username is required."
                       },
                       {
+                        min: 3,
+                        message: "Username must be longer than 3 characters."
+                      },
+                      {
                         max: 20,
                         message: "Username must be smaller than 20 characters."
+                      },
+                      {
+                        pattern: "^[^\\W_\\d]([^\\W_]*\\.?[^\\W_]+)+$",
+                        message: "Username contains illegal characters. Username must contain at least one letter, and may contain any alphanumeric character and any non-consecutive '.' characters. Username cannot end with a '.' character.",
                       }
                     ]}
                   >
@@ -83,6 +92,22 @@ class Register extends React.Component {
                     ]}
                   >
                     <Input type="password"/>
+                  </Form.Item>
+                  <Form.Item
+                    name="email"
+                    label="Email"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Please confirm your password."
+                      },
+                      {
+                        type: "email",
+                        message: "Please enter a valid email."
+                      }
+                    ]}
+                  >
+                    <Input type="email"/>
                   </Form.Item>
                   <Form.Item>
                     <Button type="primary" htmlType="submit">
