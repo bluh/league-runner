@@ -14,12 +14,16 @@ function sendResetEmail(hash, email) {
         }
     });
 
-    transporter.sendMail({
-        to: email,
-        from: "ADMIN@dragleagues.com",
-        subject: "Hello!",
-        html: resetEmail.replace("{host}", process.env.APP_URL).replace("{hash}", encodeURIComponent(hash))
-    });
+    try {
+        transporter.sendMail({
+            to: email,
+            from: "ADMIN@dragleagues.com",
+            subject: "Hello!",
+            html: resetEmail.replace("{host}", process.env.APP_URL).replace("{hash}", encodeURIComponent(hash))
+        });
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 module.exports = {

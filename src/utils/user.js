@@ -112,7 +112,8 @@ function generatePasswordResetCode(email, username) {
         { name: "Username", value: username, type: tedious.TYPES.NVarChar },
         { name: "Hash", value: hash, type: tedious.TYPES.Binary}
       ], true)
-        .then((email) => {
+        .then((data) => {
+          const email = data[0][""].value;
           resolve({email, hash});
         }).catch(err => {
           reject(err);

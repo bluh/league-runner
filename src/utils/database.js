@@ -58,11 +58,13 @@ function request(query, numRows, parameters, isProcedure=false) {
       .then(connection => {
         requestWithConnection(connection, query, numRows, parameters, isProcedure)
           .then(data => {
-            connection.close();
             resolve(data);
           })
           .catch(error => {
             reject(error);
+          })
+          .finally(() => {
+            connection.close();
           })
       })
       .catch(err => {
@@ -103,15 +105,9 @@ function requestWithConnection(connection, query, numRows, parameters, isProcedu
     }
 
     newRequest.on('row', (columns) => {
-      rows.push(columns);
-
-      if(numRows && numRows > 0 && rows.length === numRows){
-        resolve(rows);
+      if(!numRows || numRows === 0 || rows.length < numRows){
+        rows.push(columns);
       }
-    })
-
-    newRequest.on('done', () => {
-      resolve(rows);
     })
 
     newRequest.on('error', (err) => {
