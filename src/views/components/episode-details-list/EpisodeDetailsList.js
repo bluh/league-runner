@@ -31,7 +31,7 @@ class EpisodeDetailsList extends React.Component {
       },
       {
         title: "Timestamp",
-        render: (item) => moment(item.timestamp).utc().format("HH:mm:ss"),
+        render: (item) => item.timestamp ? moment(item.timestamp).utc().format("HH:mm:ss") : "",
         key: "timestamp",
         sorter: (a,b) => new Date(a.timestamp) - new Date(b.timestamp),
         defaultSortOrder: "ascend",

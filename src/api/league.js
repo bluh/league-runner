@@ -72,7 +72,7 @@ function newLeague(req, res) {
     const data = req.body;
     const userID = res.locals.userID;
 
-    if (!data || data === {}) {
+    if (!data) {
       return reject(apiUtils.generateError(400, "No payload"));
     }
 

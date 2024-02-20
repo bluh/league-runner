@@ -54,7 +54,8 @@ class LeagueEpisodesList extends React.Component {
         dataSource={this.props.episodes}
         columns={this.cols}
         expandable={{
-          expandedRowRender: (record) => (<EpisodeDetailsList episodeID={record.id} showLeaderPoints={this.props.showLeaderPoints}/>)
+          expandedRowRender: (record) => (<EpisodeDetailsList episodeID={record.id} showLeaderPoints={this.props.showLeaderPoints}/>),
+          expandRowByClick: true,
         }}
         pagination={{
           hideOnSinglePage: true

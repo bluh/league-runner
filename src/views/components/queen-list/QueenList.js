@@ -7,7 +7,7 @@ import QueensListExpanded from './QueensListExpanded';
 import { GradientText, ScoreDisplay } from "..";
 
 class QueenList extends React.Component {
-  constructor(props){
+  constructor(props) {
     super(props);
 
     this.cols = [
@@ -15,21 +15,21 @@ class QueenList extends React.Component {
         title: "Queen",
         dataIndex: "name",
         key: "name",
-        sorter: (a,b) => a.name.localeCompare(b.name)
+        sorter: (a, b) => a.name.localeCompare(b.name)
       },
       {
         title: "Total Points",
         dataIndex: "totalPoints",
         key: "totalPoints",
         render: (_, record) => <ScoreDisplay total={record.totalPoints} leader={props.showLeaderPoints ? record.leaderPoints : null} />,
-        sorter: (a,b) => a.totalPoints - b.totalPoints,
+        sorter: (a, b) => a.totalPoints - b.totalPoints,
         width: 150
       },
       {
         title: "Rank",
         dataIndex: "rank",
         key: "rank",
-        sorter: (a,b) => a.rank - b.rank,
+        sorter: (a, b) => a.rank - b.rank,
         render: (_, record) => this.renderRank(record.rank),
         width: 150,
         defaultSortOrder: "ascend"
@@ -37,18 +37,18 @@ class QueenList extends React.Component {
     ]
   }
 
-  componentDidUpdate(prevProps){
-    if(this.props.leagueID && this.props.leagueID !== prevProps.leagueID){
+  componentDidUpdate(prevProps) {
+    if (this.props.leagueID && this.props.leagueID !== prevProps.leagueID) {
       this.props.dispatch(queenActions.getQueensList(this.props.leagueID));
     }
   }
 
-  renderRank(rank){
-    if(this.props.queensList){
+  renderRank(rank) {
+    if (this.props.queensList) {
       const rankIndex = rank * 1 - 1;
       const numRanks = this.props.queensList.length;
 
-      return <GradientText total={numRanks} index={rankIndex} text={rank}/>
+      return <GradientText total={numRanks} index={rankIndex} text={rank} />
     }
   }
 
@@ -60,13 +60,21 @@ class QueenList extends React.Component {
         rowKey={item => item.id}
         dataSource={this.props.queensList}
         expandable={{
-          expandedRowRender: (record) => (<QueensListExpanded totalQueens={this.props.queensList.length} leagueID={this.props.leagueID} queenID={record.id} showLeaderPoints={this.props.showLeaderPoints}/>)
+          expandedRowRender: (record) => (
+            <QueensListExpanded
+              totalQueens={this.props.queensList.length}
+              leagueID={this.props.leagueID}
+              queenID={record.id}
+              showLeaderPoints={this.props.showLeaderPoints}
+            />
+          ),
+          expandRowByClick: true
         }}
         columns={this.cols}
         pagination={{
           hideOnSinglePage: true
         }}
-        locale={{emptyText: "No queens in this league!"}}
+        locale={{ emptyText: "No queens in this league!" }}
       />
     )
   }

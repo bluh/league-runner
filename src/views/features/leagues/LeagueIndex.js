@@ -35,7 +35,10 @@ class LeagueIndex extends React.Component {
             dataSource={this.props.leagues}
             renderItem={item => (
               <List.Item
-                actions={[(<Link key="view" to={`/leagues/${item.id}`}>View</Link>), (item.owner ? <Link key="admin" to={`/leagues/${item.id}/admin`}>Admin</Link> : null)]}
+                actions={[
+                  (item.roleId === 3 || item.roleId === 2 ? <Link key="admin" to={`/leagues/${item.id}/admin`}>Admin</Link> : null),
+                  (<Link key="view" to={`/leagues/${item.id}`}>View</Link>),
+                ]}
               >
                 <List.Item.Meta
                   title={item.name}

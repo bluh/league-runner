@@ -7,16 +7,22 @@
       cursor: pointer;
 
       &.user-icon {
-        background-color: colors.$primary2;
+        background-color: colors.$secondary2;
       }
       
       &.admin-icon {
-        background-color: colors.$primary1;
+        background-color: colors.$secondary1;
       }
       
       &.creator-icon {
         background-color: colors.$bg3;
       }
+    }
+  }
+
+  .league-admin {
+    .league-name-display {
+      font-style: italic;
     }
   }
 }

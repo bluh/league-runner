@@ -17,8 +17,11 @@ function sendResetEmail(hash, email) {
     try {
         transporter.sendMail({
             to: email,
-            from: "ADMIN@dragleagues.com",
-            subject: "Hello!",
+            from: {
+                address: "do-not-reply@dragleagues.com",
+                name: "DragLeagues"
+            },
+            subject: "Password Reset",
             html: resetEmail.replace("{host}", process.env.APP_URL).replace("{hash}", encodeURIComponent(hash))
         });
     } catch (error) {

@@ -1,0 +1,41 @@
+@use "./colors.scss" as colors;
+
+.drag-leagues {
+  a {
+    text-decoration: underline;
+
+    &:has(h1) {
+      text-decoration: none;
+    }
+  }
+
+  .ant-btn-link span {
+    text-decoration: underline;
+  }
+}
+
+// background helpers
+
+.bg-1 {
+  background-color: colors.$bg1;
+}
+
+.bg-2 {
+  background-color: colors.$bg2;
+}
+
+.bg-3 {
+  background-color: colors.$bg3;
+}
+
+.bg-4 {
+  background-color: colors.$bg4;
+}
+
+.bg-5 {
+  background-color: colors.$bg5;
+}
+
+.bg-6 {
+  background-color: colors.$bg6;
+}

@@ -213,10 +213,14 @@ class LeagueForm extends React.Component {
             {/* <FormSpy subscription={{ valid: true, pristine: true }} onChange={this.props.onChange} /> */}
             <AntdForm
               labelCol={{
-                span: 3
+                xl: 4,
+                lg: 6,
+                xs: 8,
               }}
               wrapperCol={{
-                span: 21
+                xl: 20,
+                lg: 18,
+                xs: 16,
               }}
               onFinish={handleSubmit}
             >

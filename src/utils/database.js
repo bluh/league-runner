@@ -28,15 +28,13 @@ function connect() {
   return new Promise((resolve, reject) => {
     const newConnection = new Connection(dbConfig);
 
-    newConnection.on('connect', (err) => {
+    newConnection.connect((err) => {
       if (err) {
         reject(err);
       } else {
         resolve(newConnection);
       }
-    })
-
-    newConnection.connect();
+    });
   })
 }
 
