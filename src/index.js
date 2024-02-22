@@ -19,7 +19,7 @@ app.use(helmet({
     directives: {
       "script-src": production 
         ? ["'self'", "https://unpkg.com"] // Don't allow eval in prod
-        : ["'self'", "'unsafe-eval'", "https://unpkg.com"] // Allow in dev for speed
+        : ["'self'", "'unsafe-eval'", "https://unpkg.com", "'unsafe-inline'"] // Allow in dev for speed
     }
   }
 }));

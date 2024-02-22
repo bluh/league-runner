@@ -4,6 +4,7 @@ import { connect } from "react-redux";
 import leagueActions from "../../reducers/league/action";
 import { Table } from "antd";
 import { GradientText } from "..";
+import UserDetailsList from "../user-details-list/UserDetailsList";
 
 class LeagueUserList extends React.Component {
   constructor(props){
@@ -58,6 +59,10 @@ class LeagueUserList extends React.Component {
         rowKey={item => item.id}
         dataSource={this.props.usersList}
         columns={this.cols}
+        expandable={{
+          expandedRowRender: (item) => (<UserDetailsList episodes={this.props.episodes} numUsers={this.props.usersList.length} leagueID={this.props.leagueID} userID={item.id} key={item.id} />),
+          expandRowByClick: true
+        }}
         pagination={{
           hideOnSinglePage: true
         }}
@@ -70,20 +75,23 @@ class LeagueUserList extends React.Component {
 LeagueUserList.propTypes = {
   leagueID: PropTypes.number,
   loading: PropTypes.bool,
-  usersList: PropTypes.array
+  usersList: PropTypes.array,
+  episodes: PropTypes.array
 }
 
 LeagueUserList.defaultProps = {
   leagueID: null,
   loading: false,
-  usersList: []
+  usersList: [],
+  episodes: []
 }
 
 const mapStateToProps = (state) => {
-  const { loadingLeagueUsers, leagueUsers } = state.League;
+  const { loadingLeagueUsers, leagueUsers, episodes } = state.League;
 
   return {
     usersList: leagueUsers,
+    episodes: episodes,
     loading: loadingLeagueUsers
   }
 }

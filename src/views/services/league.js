@@ -20,6 +20,16 @@ function getLeagueUsers(id){
     .then(response => response.data);
 }
 
+function getLeagueUserWeekly(leagueId, userId){
+  return api.get(`/league/${leagueId}/users/${userId}/weekly`)
+    .then(response => response.data);
+}
+
+function getLeagueUserDrafts(leagueId, userId, episodeId){
+  return api.get(`/league/${leagueId}/users/${userId}/drafts/${episodeId}`)
+    .then(response => response.data);
+}
+
 function getLeagueRules(id){
   return api.get(`/league/${id}/rules`)
     .then(response => response.data);
@@ -35,6 +45,8 @@ export default {
   getLeague,
   newLeague,
   getLeagueUsers,
+  getLeagueUserWeekly,
+  getLeagueUserDrafts,
   getLeagueRules,
   getLeagueEpisodes
 }

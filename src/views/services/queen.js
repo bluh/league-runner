@@ -6,7 +6,7 @@ function getQueensInLeague(leagueID) {
 }
 
 function getWeeklyScores(leagueID, queenID){
-  return api.get(`league/${leagueID}/weekly/${queenID}`)
+  return api.get(`league/${leagueID}/queens/${queenID}/weekly`)
     .then(response => response.data);
 }
 

@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import LeagueBreadcrumb from "./LeagueBreadcrumb";
 import leagueActions from "../../reducers/league/action";
-import { Badge, Spin, Tabs } from "antd";
+import { Badge, Card, Spin, Tabs } from "antd";
 import QueenList from "../../components/queen-list/QueenList";
 import { IdcardOutlined, KeyOutlined, LineChartOutlined, LoadingOutlined, OrderedListOutlined, ProfileOutlined, TeamOutlined, VideoCameraOutlined } from "@ant-design/icons";
 import LeagueUserList from "../../components/league-users-list/LeagueUserList";
@@ -36,7 +36,10 @@ class LeagueDetails extends React.Component {
           <h1>{this.props.league.name}</h1>
           <Tabs type="card">
             <Tabs.TabPane tab={this.renderTabTitle(ProfileOutlined, "Details")} key="1">
-              <p>{this.props.league.description}</p>
+              <Card>
+                <h2>Description:</h2>
+                <p>{this.props.league.description}</p>
+              </Card>
             </Tabs.TabPane>
             <Tabs.TabPane tab={this.renderTabTitle(this.props.queensLoading ? LoadingOutlined : IdcardOutlined, "Queens")} key="2" forceRender >
               <QueenList leagueID={this.props.league.id} />

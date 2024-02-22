@@ -1,0 +1,17 @@
+@use "../../styles/colors.scss" as colors;
+
+.user-draft-details-list .ant-table-row.leader-row {
+  background-color: colors.$bg5;
+
+  &:hover {
+    background-color: colors.$bg6;
+
+    .ant-table-cell {
+      background-color: colors.$bg6;
+    }
+  }
+
+  & .ant-table-cell:first-child {
+    font-weight: bold;
+  }
+}

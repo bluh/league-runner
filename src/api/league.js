@@ -196,6 +196,87 @@ function getUsersInLeague(req, res) {
   })
 }
 
+function getUserWeeklyDetails(req, res) {
+  return new Promise((resolve, reject) => {
+    const leagueID = req.params.leagueID;
+    const userID = req.params.userID;
+    if (leagueID === null || leagueID === undefined) {
+      res.status(400).json(apiUtils.generateError(400, "Invalid league ID"));
+      reject();
+    } else if (userID === null || userID === undefined) {
+      res.status(400).json(apiUtils.generateError(400, "Invalid user ID"));
+      reject();
+    } else {
+      databaseUtils.request('SELECT UserID, EpisodeID, EpisodeName, EpisodeNumber, WeeklyPoints, WeeklyRank FROM WeeklyRunningUserScores WHERE LeagueID=@LeagueID AND UserID=@UserID', 0, [
+        { name: "LeagueID", type: tedious.TYPES.Int, value: leagueID },
+        { name: "UserID", type: tedious.TYPES.Int, value: userID },
+      ])
+        .then((data) => {
+          const responseData = data.map(values => ({
+            episode: {
+              id: values.EpisodeID.value,
+              name: values.EpisodeName.value,
+              number: values.EpisodeNumber.value
+            },
+            userId: values.UserID.value,
+            weeklyPoints: values.WeeklyPoints.value,
+            weeklyRank: values.WeeklyRank.value * 1,
+          }));
+
+          res.status(200).json(responseData);
+          resolve();
+        })
+        .catch(err => {
+          console.error(err);
+          reject(apiUtils.generateError(500, "Error getting data", err));
+        })
+    }
+  })
+}
+
+function getUserDraftDetails(req, res){
+  return new Promise((resolve, reject) => {
+    const leagueID = req.params.leagueID;
+    const userID = req.params.userID;
+    const episodeID = req.params.episodeID;
+    if (leagueID === null || leagueID === undefined) {
+      res.status(400).json(apiUtils.generateError(400, "Invalid league ID"));
+      reject();
+    } else if (userID === null || userID === undefined) {
+      res.status(400).json(apiUtils.generateError(400, "Invalid user ID"));
+      reject();
+    } else if (episodeID === null || episodeID === undefined) {
+      res.status(400).json(apiUtils.generateError(400, "Invalid episode ID"));
+      reject();
+    } else {
+      databaseUtils.request('SELECT EpisodeID, QueenID, QueenName, Leader, WeeklyQueenPoints, WeeklyQueenRank FROM UserDraftDetails WHERE LeagueID=@LeagueID AND UserID=@UserID AND EpisodeID=@EpisodeID', 0, [
+        { name: "LeagueID", type: tedious.TYPES.Int, value: leagueID },
+        { name: "UserID", type: tedious.TYPES.Int, value: userID },
+        { name: "EpisodeID", type: tedious.TYPES.Int, value: episodeID },
+      ])
+        .then((data) => {
+          const responseData = data.map(values => ({
+            id: values.EpisodeID.value,
+            queen: {
+              id: values.QueenID.value,
+              name: values.QueenName.value,
+              leader: values.Leader.value,
+            },
+            points: values.WeeklyQueenPoints.value,
+            rank: values.WeeklyQueenRank.value * 1,
+          }));
+
+          res.status(200).json(responseData);
+          resolve();
+        })
+        .catch(err => {
+          console.error(err);
+          reject(apiUtils.generateError(500, "Error getting data", err));
+        })
+    }
+  })
+}
+
 function getRulesInLeague(req, res) {
   return new Promise((resolve, reject) => {
     const leagueID = req.params.leagueID;
@@ -276,25 +357,6 @@ function registerApi(app) {
   /**
    * @openapi
    * 
-   * /api/league/{leagueID}:
-   *  get:
-   *    description: Get the League object
-   *    tags: [League]
-   *    parameters:
-   *      - name: leagueID
-   *        in: path
-   *        required: true
-   *        type: integer
-   *    responses:
-   *      200:
-   *        description: The League object
-   */
-  app.get('/api/league/:leagueID',  apiUtils.wrapHandler(getLeague));
-
-
-  /**
-   * @openapi
-   * 
    * /api/league:
    *  post:
    *    description: Create a new League
@@ -314,6 +376,25 @@ function registerApi(app) {
   /**
    * @openapi
    * 
+   * /api/league/{leagueID}:
+   *  get:
+   *    description: Get the League object
+   *    tags: [League]
+   *    parameters:
+   *      - name: leagueID
+   *        in: path
+   *        required: true
+   *        type: integer
+   *    responses:
+   *      200:
+   *        description: The League object
+   */
+  app.get('/api/league/:leagueID',  apiUtils.wrapHandler(getLeague));
+
+
+  /**
+   * @openapi
+   * 
    * /api/league/{leagueID}/queens:
    *  get:
    *    description: Get the Queens in a League
@@ -328,6 +409,29 @@ function registerApi(app) {
    *        description: The Queens in the league
    */
   app.get('/api/league/:leagueID/queens', roleUtils.authorize(['User']), apiUtils.wrapHandler(getQueensInLeague));
+
+
+  /**
+   * @openapi
+   * 
+   * /api/league/{leagueID}/queens/{queenID}/weekly:
+   *  get:
+   *    description: Get the weekly scores of a Queen in a League
+   *    tags: [League]
+   *    parameters:
+   *      - name: leagueID
+   *        in: path
+   *        required: true
+   *        type: integer
+   *      - name: queenID
+   *        in: path
+   *        required: true
+   *        type: integer
+   *    responses:
+   *      200:
+   *        description: The weekly scores of the Queen
+   */
+  app.get('/api/league/:leagueID/queens/:queenID/weekly', roleUtils.authorize(['User']), apiUtils.wrapHandler(getQueenDetails));
 
 
   /**
@@ -371,24 +475,51 @@ function registerApi(app) {
   /**
    * @openapi
    * 
-   * /api/league/{leagueID}/weekly/{queenID}:
+   * /api/league/{leagueID}/users/{userID}/weekly:
    *  get:
-   *    description: Get the weekly scores of a Queen in a League
+   *    description: Get the weekly scores of a User in a League
    *    tags: [League]
    *    parameters:
    *      - name: leagueID
    *        in: path
    *        required: true
    *        type: integer
-   *      - name: queenID
+   *      - name: userID
    *        in: path
    *        required: true
    *        type: integer
    *    responses:
    *      200:
-   *        description: The weekly scores of the Queen
+   *        description: The weekly scores of the User
    */
-  app.get('/api/league/:leagueID/weekly/:queenID', roleUtils.authorize(['User']), apiUtils.wrapHandler(getQueenDetails));
+  app.get('/api/league/:leagueID/users/:userID/weekly', roleUtils.authorize(['User']), apiUtils.wrapHandler(getUserWeeklyDetails));
+
+
+  /**
+   * @openapi
+   * 
+   * /api/league/{leagueID}/users/{userID}/drafts/{episodeID}:
+   *  get:
+   *    description: Get the episode's drafts of a User in a League
+   *    tags: [League]
+   *    parameters:
+   *      - name: leagueID
+   *        in: path
+   *        required: true
+   *        type: integer
+   *      - name: userID
+   *        in: path
+   *        required: true
+   *        type: integer
+   *      - name: episodeID
+   *        in: path
+   *        required: true
+   *        type: integer
+   *    responses:
+   *      200:
+   *        description: The weekly scores of the User
+   */
+  app.get('/api/league/:leagueID/users/:userID/drafts/:episodeID', roleUtils.authorize(['User']), apiUtils.wrapHandler(getUserDraftDetails));
 
 
   /**
