@@ -53,21 +53,23 @@ class LeagueUserList extends React.Component {
 
   render() {
     return (
-      <Table
-        bordered
-        loading={this.props.loading}
-        rowKey={item => item.id}
-        dataSource={this.props.usersList}
-        columns={this.cols}
-        expandable={{
-          expandedRowRender: (item) => (<UserDetailsList episodes={this.props.episodes} numUsers={this.props.usersList.length} leagueID={this.props.leagueID} userID={item.id} key={item.id} />),
-          expandRowByClick: true
-        }}
-        pagination={{
-          hideOnSinglePage: true
-        }}
-        locale={{emptyText: "No users in this league!"}}
-      />
+      <div style={{ overflowX: "scroll" }}>
+        <Table
+          bordered
+          loading={this.props.loading}
+          rowKey={item => item.id}
+          dataSource={this.props.usersList}
+          columns={this.cols}
+          expandable={{
+            expandedRowRender: (item) => (<UserDetailsList episodes={this.props.episodes} numUsers={this.props.usersList.length} leagueID={this.props.leagueID} userID={item.id} key={item.id} />),
+            expandRowByClick: true
+          }}
+          pagination={{
+            hideOnSinglePage: true
+          }}
+          locale={{emptyText: "No users in this league!"}}
+        />
+      </div>
     )
   }
 }

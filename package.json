@@ -9,7 +9,7 @@
     "start-react-dev": "webpack watch --env=development",
     "start-server-prod": "node src/index.js production",
     "start-react-prod": "webpack watch --env=production",
-    "start": "webpack --mode=production && node src/index.js"
+    "start": "webpack build --env=production && node src/index.js production"
   },
   "repository": {
     "type": "git",

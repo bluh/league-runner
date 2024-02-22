@@ -256,7 +256,7 @@ function getUserDraftDetails(req, res){
       ])
         .then((data) => {
           const responseData = data.map(values => ({
-            id: values.EpisodeID.value,
+            episodeId: values.EpisodeID.value,
             queen: {
               id: values.QueenID.value,
               name: values.QueenName.value,

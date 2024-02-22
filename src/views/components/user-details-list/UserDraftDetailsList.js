@@ -57,7 +57,7 @@ class UserDraftDetailsList extends React.Component {
         className="user-draft-details-list"
         loading={this.state.loading}
         key={this.props.userID}
-        rowKey={item => item.id}
+        rowKey={item => item.queen.id}
         dataSource={this.state.tableData}
         rowClassName={(record) => record.queen.leader ? "leader-row" : ""}
         columns={this.cols}
@@ -72,18 +72,16 @@ class UserDraftDetailsList extends React.Component {
 
 UserDraftDetailsList.propTypes = {
   leagueID: PropTypes.number,
-  numUsers: PropTypes.number,
+  numQueens: PropTypes.number,
   userID: PropTypes.number,
-  loading: PropTypes.bool,
-  episodes: PropTypes.array
+  episodeID: PropTypes.number,
 }
 
 UserDraftDetailsList.defaultProps = {
   leagueID: 0,
-  numUsers: 0,
+  numQueens: 0,
   userID: 0,
-  loading: false,
-  episodes: []
+  episodeID: 0
 }
 
 const mapStateToProps = (state) => {

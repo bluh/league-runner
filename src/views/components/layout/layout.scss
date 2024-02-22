@@ -58,6 +58,10 @@
       padding-bottom: 100px;
       max-width: calc(100% - 48px);
       background: colors.$bg6;
+      
+      @media screen and (max-width: 575px) {
+        max-width: calc(100% - 8px);
+      }
     }
   }
 

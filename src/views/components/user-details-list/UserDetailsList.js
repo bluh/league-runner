@@ -68,6 +68,7 @@ class UserDetailsList extends React.Component {
         expandable={{
           expandedRowRender: (row) => <UserDraftDetailsList leagueID={this.props.leagueID} userID={this.props.userID} episodeID={row.episode.id} />,
           expandRowByClick: true,
+          expandedRowClassName: () => "user-draft-details-container"
         }}
         pagination={{
           hideOnSinglePage: true

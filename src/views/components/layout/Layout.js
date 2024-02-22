@@ -114,7 +114,7 @@ class Layout extends React.Component {
         </AntdLayout.Header>
         <AntdLayout.Content className="layout-content">
           <Row justify="center">
-            <Col className="layout-content-container" span={20}>
+            <Col className="layout-content-container" sm={20} xs={24}>
               {this.props.children}
             </Col>
           </Row>
