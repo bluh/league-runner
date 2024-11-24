@@ -1,6 +1,14 @@
 @use "../../styles/colors.scss" as colors;
 
 .leagues-container{
+  .league-details {
+    .queen-row-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  }
+
   .league-new{
     .ant-avatar {
       padding-top: 25%;

@@ -3,5 +3,6 @@ module.exports = [
   require('./health'),
   require('./league'),
   require('./metas'),
-  require('./episode')
+  require('./episode'),
+  require('./queen')
 ];

@@ -1,10 +1,11 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import { Table } from "antd";
+import { Button, Table } from "antd";
 import queenActions from "../../reducers/queens/action";
 import QueensListExpanded from './QueensListExpanded';
 import { GradientText, ScoreDisplay } from "..";
+import QueenInfoModal from "../queen-info/QueenInfoModal";
 
 class QueenList extends React.Component {
   constructor(props) {
@@ -15,7 +16,8 @@ class QueenList extends React.Component {
         title: "Queen",
         dataIndex: "name",
         key: "name",
-        sorter: (a, b) => a.name.localeCompare(b.name)
+        sorter: (a, b) => a.name.localeCompare(b.name),
+        render: (_, record) => <span className="queen-row-container">{record.name}<Button onClick={evt => this.qmBtnClick(evt, record)}>?</Button></span>
       },
       {
         title: "Total Points",
@@ -35,12 +37,26 @@ class QueenList extends React.Component {
         defaultSortOrder: "ascend"
       }
     ]
+
+    this.state = {
+      displayingModal: false,
+      modalForQueenID: null,
+    }
   }
 
   componentDidUpdate(prevProps) {
     if (this.props.leagueID && this.props.leagueID !== prevProps.leagueID) {
       this.props.dispatch(queenActions.getQueensList(this.props.leagueID));
     }
+  }
+
+  qmBtnClick(evt, row) {
+    evt.stopPropagation();
+
+    this.setState({
+      displayingModal: true,
+      modalForQueenID: row.id
+    })
   }
 
   renderRank(rank) {
@@ -54,28 +70,35 @@ class QueenList extends React.Component {
 
   render() {
     return (
-      <Table
-        bordered
-        loading={this.props.loading}
-        rowKey={item => item.id}
-        dataSource={this.props.queensList}
-        expandable={{
-          expandedRowRender: (record) => (
-            <QueensListExpanded
-              totalQueens={this.props.queensList.length}
-              leagueID={this.props.leagueID}
-              queenID={record.id}
-              showLeaderPoints={this.props.showLeaderPoints}
-            />
-          ),
-          expandRowByClick: true
-        }}
-        columns={this.cols}
-        pagination={{
-          hideOnSinglePage: true
-        }}
-        locale={{ emptyText: "No queens in this league!" }}
-      />
+      <>
+        <QueenInfoModal
+          showing={this.state.displayingModal}
+          queenID={this.state.modalForQueenID}
+          onClose={() => this.setState({ displayingModal: false })}
+        />
+        <Table
+          bordered
+          loading={this.props.loading}
+          rowKey={item => item.id}
+          dataSource={this.props.queensList}
+          expandable={{
+            expandedRowRender: (record) => (
+              <QueensListExpanded
+                totalQueens={this.props.queensList.length}
+                leagueID={this.props.leagueID}
+                queenID={record.id}
+                showLeaderPoints={this.props.showLeaderPoints}
+              />
+            ),
+            expandRowByClick: true
+          }}
+          columns={this.cols}
+          pagination={{
+            hideOnSinglePage: true
+          }}
+          locale={{ emptyText: "No queens in this league!" }}
+        />
+      </>
     )
   }
 }

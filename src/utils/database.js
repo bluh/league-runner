@@ -18,6 +18,9 @@ const dbConfig = {
     useColumnNames: true,
   }
 }
+/**
+ * @typedef {Object.<string, tedious.ColumnValue>} TediousRow
+ */
 
 /**
  * Returns new connection to the database server
@@ -48,7 +51,7 @@ function connect() {
  * @param {string} parameters[].value Value of the parameter
  * @param {tedious.TediousType}  parameters[].type Type of the parameter
  * @param {boolean?} isProcedure True if the request is a stored procedure
- * @returns The result of the request 
+ * @returns {Promise<TediousRow[]>} The result of the request
  */
 function request(query, numRows, parameters, isProcedure=false) {
   return new Promise((resolve, reject) => {
@@ -82,7 +85,7 @@ function request(query, numRows, parameters, isProcedure=false) {
  * @param {string} parameters[].value Value of the parameter
  * @param {tedious.TediousType}  parameters[].type Type of the parameter
  * @param {boolean?} isProcedure True if the request is a stored procedure
- * @returns The result of the request 
+ * @returns {Promise<TediousRow[]>} The result of the request
  */
 function requestWithConnection(connection, query, numRows, parameters, isProcedure=false) {
   return new Promise((resolve,reject) => {

@@ -110,7 +110,7 @@ class EpisodeDetailsList extends React.Component {
       .sort()
       .reverse()
       .reduce((reduced, value, index) => {
-        if(!reduced?.[value]){ // truncate out already-seen values
+        if(!reduced?.[value] && reduced[value] !== 0){ // truncate out already-seen values
           reduced[value] = index
         }
         return reduced;

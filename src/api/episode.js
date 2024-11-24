@@ -14,13 +14,12 @@ function getEpisode(req,res){
       ]
     },
     values => ({
-      id: values.ID.value,
-      name: values.Name.value,
-      leagueID: values.LeagueID.value,
-      number: values.Number.value,
-      airDate: values.AirDate.value,
-    }),
-    true
+      id: values[0].ID.value,
+      name: values[0].Name.value,
+      leagueID: values[0].LeagueID.value,
+      number: values[0].Number.value,
+      airDate: values[0].AirDate.value,
+    })
   );
 }
 
@@ -35,21 +34,21 @@ function getEpisodeDetails(req, res) {
         { name: "EpisodeID", type: tedious.TYPES.Int, param: "episodeID" }
       ]
     },
-    values => ({
-      id: values.RecordID.value,
-      episodeID: values.EpisodeID.value,
-      leagueID: values.LeagueID.value,
-      timestamp: values.Timestamp.value,
+    values => values.map(value => ({
+      id: value.RecordID.value,
+      episodeID: value.EpisodeID.value,
+      leagueID: value.LeagueID.value,
+      timestamp: value.Timestamp.value,
       queen: {
-        id: values.QueenID.value,
-        name: values.QueenName.value
+        id: value.QueenID.value,
+        name: value.QueenName.value
       },
       rule: {
-        id: values.RuleID.value,
-        name: values.RuleName.value,
-        points: values.RulePoints.value,
+        id: value.RuleID.value,
+        name: value.RuleName.value,
+        points: value.RulePoints.value,
       }
-    })
+    }))
   );
 }
 
@@ -64,17 +63,17 @@ function getEpisodeQueens(req, res){
         { name: "EpisodeID", type: tedious.TYPES.Int, param: "episodeID" }
       ]
     },
-    values => ({
-      leagueID: values.LeagueID.value,
+    values => values.map(value => ({
+      leagueID: value.LeagueID.value,
       queen: {
-        id: values.QueenID.value,
-        name: values.QueenName.value
+        id: value.QueenID.value,
+        name: value.QueenName.value
       },
-      lastSeenEpisode: values.LastSeenEpisode.value,
-      lastSeenStatus: values.LastSeenStatus.value,
-      inThisEpisode: values.InThisEpisode.value,
-      inNextEpisode: values.InNextEpisode.value,
-    })
+      lastSeenEpisode: value.LastSeenEpisode.value,
+      lastSeenStatus: value.LastSeenStatus.value,
+      inThisEpisode: value.InThisEpisode.value,
+      inNextEpisode: value.InNextEpisode.value,
+    }))
   );
 }
 

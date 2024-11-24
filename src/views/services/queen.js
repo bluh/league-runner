@@ -10,7 +10,13 @@ function getWeeklyScores(leagueID, queenID){
     .then(response => response.data);
 }
 
+function getQueenDetails(queenID){
+  return api.get(`queen/${queenID}`)
+    .then(response => response.data)
+}
+
 export default {
   getQueensInLeague,
-  getWeeklyScores
+  getWeeklyScores,
+  getQueenDetails
 }

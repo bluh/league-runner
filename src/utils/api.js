@@ -2,6 +2,12 @@ const databaseUtils = require('./database');
 const { STATUS_CODES } = require('http');
 
 /**
+ * @callback dataCallback
+ * @param {databaseUtils.TediousRow[]} input Array containing a set of values representing the row
+ * @returns {any} Output to pass to the endpoint
+ */
+
+/**
  * Helper method to create a simple request to the database.
  * @param {Express.Request} req Request Object
  * @param {Express.Response} res Response Object
@@ -12,11 +18,10 @@ const { STATUS_CODES } = require('http');
  * @param {string} queryDetails.queryParams[].name Name of parameter in query
  * @param {int} queryDetails.queryParams[].type Type of parameter in query
  * @param {string} queryDetails.queryParams[].param Name of parameter in url to use in query
- * @param {Function} dataCallback Callback to call for every row returned by the query, to transform the data
- * @param {Boolean?} returnOne Only return the first result from the query
+ * @param {dataCallback} dataCallback Callback to call for every row returned by the query, to transform the data
  * @returns Promise handling the request/response from Express and rejects with errors
  */
-function queryDatabase(req, res, paramsList, queryDetails, dataCallback, returnOne = false) {
+function queryDatabase(req, res, paramsList, queryDetails, dataCallback) {
   return new Promise((resolve, reject) => {
     const params = {};
     const paramSuccess = paramsList.every(param => {
@@ -40,12 +45,8 @@ function queryDatabase(req, res, paramsList, queryDetails, dataCallback, returnO
           reject(generateError(500, "DatabaseError", requestError.message));
         })
         .then(data => {
-          const responseData = data.map(dataCallback);
-          if(returnOne){
-            resolve(res.status(200).json(responseData[0]));
-          }else{
-            resolve(res.status(200).json(responseData));
-          }
+          const responseData = dataCallback(data);
+          resolve(res.status(200).json(responseData));
         })
         .catch(mappingError => {
           console.log("Mapping Error:", mappingError);
