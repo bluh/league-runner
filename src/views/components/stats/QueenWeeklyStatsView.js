@@ -50,8 +50,8 @@ class QueenWeeklyStatsView extends React.Component {
                   type: "line",
                   label: "Overall Points (Leader)",
                   data: overallLeaderData,
-                  backgroundColor: "#f5db66",
-                  borderColor: "#f5db66"
+                  backgroundColor: "#bb6e11",
+                  borderColor: "#bb6e11"
                 },
                 {
                   type: "bar",
@@ -64,8 +64,8 @@ class QueenWeeklyStatsView extends React.Component {
                   type: "bar",
                   label: "Weekly Points (Leader)",
                   data: weeklyLeaderData,
-                  backgroundColor: "#f8efb4",
-                  borderColor: "#f8efb4"
+                  backgroundColor: "#f3a32b",
+                  borderColor: "#f3a32b"
                 }
               ],
               labels: chartAxis
