@@ -20,7 +20,7 @@ function createLeague(userID, leagueData) {
                 { name: "Name", type: tedious.TYPES.NVarChar, value: leagueData.name },
                 { name: "Description", type: tedious.TYPES.NVarChar, value: leagueData.description || null },
                 { name: "Drafts", type: tedious.TYPES.Int, value: leagueData.drafts },
-                { name: "AllowLeaders", type: tedious.TYPES.Bit, value: leagueData.allowLeaders },
+                { name: "AllowLeaders", type: tedious.TYPES.Bit, value: leagueData.draftLeader },
                 { name: "Hash", type: tedious.TYPES.NVarChar, value: newHash },
               ], true)
                 .then((createLeagueData) => {
@@ -176,6 +176,68 @@ function generateHash(connection) {
   })
 }
 
+function updateLeague(userID, leagueID, leagueData) {
+  return new Promise((resolve, reject) => {
+    databaseUtils.connect()
+      .then(connection => {
+        connection.transaction((newTransactionError, doneTransaction) => {
+          if (newTransactionError) {
+            connection.close();
+            return reject(apiUtils.generateError(500, "Error creating transaction", newTransactionError))
+          }
+
+          databaseUtils.requestWithConnection(connection,
+            "SELECT * FROM UserAndLeagues WHERE UserID=@UserID AND LeagueID=@LeagueID AND LeagueRoleID>1", 1, [
+              { name: "UserID", value: userID, type: tedious.TYPES.Int },
+              { name: "LeagueID", value: leagueID, type: tedious.TYPES.Int }
+            ])
+            .then(data => {
+              if(data.length === 0){
+                return reject(apiUtils.generateError(401, "Unauthorized"));
+              }
+
+              const { name, description, drafts, draftLeader } = leagueData;
+
+              databaseUtils.requestWithConnection(connection,
+                "UPDATE Leagues SET Name=@Name, Description=@Description, Drafts=@Drafts, DraftLeader=@Leader WHERE ID=@LeagueID", 0, [
+                  { name: "Name", value: name, type: tedious.TYPES.Text },
+                  { name: "Description", value: description, type: tedious.TYPES.Text },
+                  { name: "Drafts", value: drafts, type: tedious.TYPES.Numeric },
+                  { name: "Leader", value: draftLeader, type: tedious.TYPES.Bit },
+                  { name: "LeagueID", value: leagueID, type: tedious.TYPES.Numeric }
+                ]
+              )
+              .then(() => {
+                doneTransaction(null, (transactionError) => {
+                  if (transactionError) {
+                    console.error(transactionError);
+                    reject(apiUtils.generateError(500, "Error finalizing transaction", transactionError));
+                  }else{
+                    resolve();
+                  }
+                })
+              })
+              .catch(updateError => {
+                doneTransaction(new Error(`Error updating data: ${updateError}`), () => {
+                  connection.close();
+                  console.error(updateError);
+                  reject(apiUtils.generateError(500, "Error updating League data", updateError));
+                })
+              })
+            })
+            .catch(leagueError => {
+              doneTransaction("Error updating league", () => {
+                connection.close();
+                console.error(leagueError);
+                reject(apiUtils.generateError(500, "Error updating league", leagueError));
+              })
+            })
+        }, tedious.ISOLATION_LEVEL.REPEATABLE_READ)
+      })
+  })
+}
+
 module.exports = {
-  createLeague
+  createLeague,
+  updateLeague
 }

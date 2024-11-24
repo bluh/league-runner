@@ -47,6 +47,28 @@ export default function(state = initialState, action){
         ...state,
         loadingLeague: false,
       }
+    case constants.UPDATE_LEAGUE:
+      return {
+        ...state,
+        loadingLeague: true,
+      }
+    case constants.UPDATE_LEAGUE_SUCCESS:
+      return {
+        ...state,
+        league: {
+          ...state.league,
+          draftLeader: action.data.draftLeader,
+          description: action.data.description,
+          drafts: action.data.drafts,
+          name: action.data.name,
+        },
+        loadingLeague: false,
+      };
+    case constants.UPDATE_LEAGUE_FAILURE:
+      return {
+        ...state,
+        loadingLeague: false,
+      }
     case constants.GET_LEAGUE:
       return {
         ...state,

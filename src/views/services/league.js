@@ -15,6 +15,10 @@ function newLeague(data){
     .then(response => response.data);
 }
 
+function updateLeague(id, data){
+  return api.put(`/league/${id}`, data);
+}
+
 function getLeagueUsers(id){
   return api.get(`/league/${id}/users`)
     .then(response => response.data);
@@ -44,6 +48,7 @@ export default {
   getUserLeagues,
   getLeague,
   newLeague,
+  updateLeague,
   getLeagueUsers,
   getLeagueUserWeekly,
   getLeagueUserDrafts,

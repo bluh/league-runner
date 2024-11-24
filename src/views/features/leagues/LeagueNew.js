@@ -44,7 +44,7 @@ class LeagueNew extends React.Component {
             name: "",
             description: "",
             drafts: 1,
-            allowLeaders: true,
+            draftLeader: true,
             users: [
               {
                 role: 3,

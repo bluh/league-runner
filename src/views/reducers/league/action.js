@@ -26,6 +26,17 @@ function createNewLeague(data, finished) {
   }, leagueServices.newLeague, [data], finished);
 }
 
+function updateLeague(id, data, finished) {
+  return simpleReducerHelper({
+    request: constants.UPDATE_LEAGUE,
+    success: constants.UPDATE_LEAGUE_SUCCESS,
+    failure: constants.UPDATE_LEAGUE_FAILURE
+  }, () => (
+    leagueServices.updateLeague(id, data)
+      .then(() => data)
+  ), [], finished);
+}
+
 function getLeagueUsers(id){
   return simpleReducerHelper({
     request: constants.GET_LEAGUE_USERS,
@@ -53,6 +64,7 @@ export default {
   getUserLeagues,
   getLeague,
   createNewLeague,
+  updateLeague,
   getLeagueUsers,
   getLeagueRules,
   getLeagueEpisodes

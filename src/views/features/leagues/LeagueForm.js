@@ -196,7 +196,7 @@ class LeagueForm extends React.Component {
 
           return this.props.onSubmit(newData);
         }}
-        validate={leagueValidator.validateLeague}
+        validate={leagueValidator.validateNewLeague}
       >
         {({
             handleSubmit,
@@ -277,7 +277,7 @@ class LeagueForm extends React.Component {
                           )}
                         </Field>
 
-                        <Field name="allowLeaders" type="checkbox">
+                        <Field name="draftLeader" type="checkbox">
                           {({ input, meta }) => (
                             <AntdForm.Item
                               required

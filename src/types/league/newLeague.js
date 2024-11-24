@@ -12,7 +12,7 @@
  *        type: string
  *      drafts:
  *        type: number
- *      allowLeaders:
+ *      draftLeader:
  *        type: boolean
  *      users:
  *        type: array
@@ -68,7 +68,7 @@ module.exports = {
       greaterThan: 0
     }
   },
-  allowLeaders: {
+  draftLeader: {
     type: "boolean",
     presence: true
   },

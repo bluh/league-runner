@@ -1,3 +1,3 @@
 module.exports = {
-  newLeague: require('./newLeague.js')
+  league: require('./league/index.js')
 };

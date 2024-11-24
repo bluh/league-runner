@@ -43,7 +43,7 @@ function getLeague(req, res) {
       res.status(400).json(apiUtils.generateError(400, "Invalid league ID"));
       reject();
     } else {
-      databaseUtils.request('SELECT TOP(1) ID, Name, Description FROM Leagues WHERE ID=@ID AND Enabled=1', 1, [
+      databaseUtils.request('SELECT TOP(1) ID, Name, Description, Hash, Drafts, DraftLeader FROM Leagues WHERE ID=@ID AND Enabled=1', 1, [
         { name: "ID", type: tedious.TYPES.Int, value: leagueID }
       ])
         .then((data) => {
@@ -52,8 +52,11 @@ function getLeague(req, res) {
           }else{
             const responseData = data.map(values => ({
               id: values.ID.value,
+              hash: values.Hash.value,
               name: values.Name.value,
-              description: values.Description.value
+              description: values.Description.value,
+              drafts: values.Drafts.value,
+              draftLeader: values.DraftLeader.value
             }))
             res.status(200).json(responseData[0]);
             resolve();
@@ -76,7 +79,7 @@ function newLeague(req, res) {
       return reject(apiUtils.generateError(400, "No payload"));
     }
 
-    const errors = validator.validate(data, types.newLeague);
+    const errors = validator.validate(data, types.league.newLeague);
     if (errors) {
       return reject(apiUtils.generateError(400, "Invalid payload", { errors }));
     }
@@ -84,6 +87,32 @@ function newLeague(req, res) {
     leagueUtils.createLeague(userID, data)
       .then(newID => {
         res.status(200).json(newID);
+      })
+      .catch(error => {
+        res.status(500).json(error);
+      })
+    
+  })
+}
+
+function updateLeague(req, res) {
+  return new Promise((resolve, reject) => {
+    const data = req.body;
+    const userID = res.locals.userID;
+    const leagueID = req.params.leagueID;
+
+    if (!data) {
+      return reject(apiUtils.generateError(400, "No payload"));
+    }
+
+    const errors = validator.validate(data, types.league.updateLeague);
+    if (errors) {
+      return reject(apiUtils.generateError(400, "Invalid payload", { errors }));
+    }
+
+    leagueUtils.updateLeague(userID, leagueID, data)
+      .then(() => {
+        res.status(200).json();
       })
       .catch(error => {
         res.status(500).json(error);
@@ -389,7 +418,31 @@ function registerApi(app) {
    *      200:
    *        description: The League object
    */
-  app.get('/api/league/:leagueID',  apiUtils.wrapHandler(getLeague));
+  app.get('/api/league/:leagueID', apiUtils.wrapHandler(getLeague));
+
+
+  /**
+   * @openapi
+   * 
+   * /api/league/{leagueID}:
+   *  put:
+   *    description: Update an existing League
+   *    tags: [League]
+   *    requestBody:
+   *      content:
+   *        application/json:
+   *          schema:
+   *            $ref: '#/definitions/updateLeague'
+   *    parameters:
+   *      - name: leagueID
+   *        in: path
+   *        required: true
+   *        type: integer
+   *    responses:
+   *      200:
+   *        description: The update was successful
+   */
+  app.put('/api/league/:leagueID', roleUtils.authorize(['User']), apiUtils.wrapHandler(updateLeague));
 
 
   /**

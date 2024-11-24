@@ -56,7 +56,7 @@ if(!production){
         version: '1.0.0',
       },
     },
-    apis: ['./src/api/*.js', './src/types/*.js'],
+    apis: ['./src/api/*.js', './src/types/*/*.js'],
   };
   
   const swaggerSpec = swaggerJSDoc(options);

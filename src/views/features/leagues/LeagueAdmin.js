@@ -4,8 +4,9 @@ import { connect } from "react-redux";
 import { Badge, Button, Modal, Spin, Tabs } from "antd";
 import LeagueBreadcrumb from "./LeagueBreadcrumb";
 import leagueActions from "../../reducers/league/action";
-import { IdcardOutlined, ProfileOutlined, VideoCameraAddOutlined, WarningOutlined } from "@ant-design/icons";
+import { IdcardOutlined, ProfileOutlined, UserOutlined, VideoCameraAddOutlined, WarningOutlined } from "@ant-design/icons";
 import AdminQueenList from "../../components/queen-list/AdminQueenList";
+import AdminLeagueForm from "../../components/league-details/AdminLeagueForm";
 
 class LeagueAdmin extends React.Component {
   constructor(props) {
@@ -44,19 +45,19 @@ class LeagueAdmin extends React.Component {
           <LeagueBreadcrumb leagueName={this.props.league.name} leagueID={this.props.league.id} isAdmin />
           <h1>Admin Portal for <span className="league-name-display">{this.props.league.name}</span></h1>
           <Tabs type="card">
-            <Tabs.TabPane tab={this.renderTabTitle(VideoCameraAddOutlined, "Episodes")} key="1">
+            <Tabs.TabPane tab={this.renderTabTitle(ProfileOutlined, "Details")} key="1">
+              <AdminLeagueForm />
+            </Tabs.TabPane>
+            <Tabs.TabPane tab={this.renderTabTitle(UserOutlined, "Users")} key="2">
+              
+            </Tabs.TabPane>
+            <Tabs.TabPane tab={this.renderTabTitle(VideoCameraAddOutlined, "Episodes")} key="3">
 
             </Tabs.TabPane>
-            <Tabs.TabPane tab={this.renderTabTitle(IdcardOutlined, "Queens")} key="2" forceRender>
+            <Tabs.TabPane tab={this.renderTabTitle(IdcardOutlined, "Queens")} key="4" forceRender>
               <AdminQueenList leagueID={this.props.league.id} />
             </Tabs.TabPane>
-            <Tabs.TabPane tab={this.renderTabTitle(ProfileOutlined, "Details")} key="3">
-              <h2>Details</h2>
-              <h3>Name</h3>
-              <h3>Description</h3>
-              <Button type="default">Save Changes</Button>
-            </Tabs.TabPane>
-            <Tabs.TabPane tab={this.renderTabTitle(WarningOutlined, "Danger Zone")} key="4">
+            <Tabs.TabPane tab={this.renderTabTitle(WarningOutlined, "Danger Zone")} key="5">
               <h2>Delete League</h2>
               <Button type="default" danger onClick={() => this.setState({ showDeleteModal: true })}>Delete League</Button>
             </Tabs.TabPane>
@@ -83,8 +84,7 @@ LeagueAdmin.propTypes = {
   loading: PropTypes.bool,
   league: PropTypes.shape({
     id: PropTypes.number,
-    name: PropTypes.string,
-    description: PropTypes.string
+    name: PropTypes.string
   }),
   queensLoading: PropTypes.bool,
   loadingLeagueUsers: PropTypes.bool,
