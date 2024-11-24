@@ -84,14 +84,16 @@ function bulkLoadUsers(connection, userID, leagueData, newLeagueId){
     bulkLoadUsers.addColumn('UserID', tedious.TYPES.Int, { nullable: false });
     bulkLoadUsers.addColumn('RoleID', tedious.TYPES.Int, { nullable: false });
 
-    bulkLoadUsers.addRow(newLeagueId, userID, 3);
+    const rows = [];
+
+    rows.push({ LeagueID: newLeagueId, UserID: userID, RoleID: 3});
 
     leagueData.users.forEach(v => {
       if (v.user !== userID)
-        bulkLoadUsers.addRow(newLeagueId, v.user, v.role);
+        rows.push({ LeagueID: newLeagueId, UserID: v.user, RoleID: v.role});
     })
 
-    connection.execBulkLoad(bulkLoadUsers);
+    connection.execBulkLoad(bulkLoadUsers, rows);
   })
 }
 
@@ -112,14 +114,15 @@ function bulkLoadQueens(connection, leagueData, newLeagueId){
 
     bulkLoadQueens.addColumn('Name', tedious.TYPES.NVarChar, { nullable: false });
     bulkLoadQueens.addColumn('LeagueID', tedious.TYPES.Int, { nullable: false });
-    bulkLoadQueens.addColumn('Eliminated', tedious.TYPES.Bit, { nullable: false });
     bulkLoadQueens.addColumn('Enabled', tedious.TYPES.Bit, { nullable: false });
 
+    const rows = [];
+
     leagueData.queens.forEach(q => {
-      bulkLoadQueens.addRow(q, newLeagueId, false, true);
+      rows.push({ Name: q, LeagueID: newLeagueId, Enabled: true});
     })
 
-    connection.execBulkLoad(bulkLoadQueens);
+    connection.execBulkLoad(bulkLoadQueens, rows);
   })
 }
 
@@ -144,11 +147,13 @@ function bulkLoadRules(connection, leagueData, newLeagueId){
     bulkLoadRules.addColumn('PointValue', tedious.TYPES.Int, { nullable: false });
     bulkLoadRules.addColumn('Enabled', tedious.TYPES.Bit, { nullable: false });
 
+    const rows = [];
+
     leagueData.rules.forEach(r => {
-      bulkLoadRules.addRow(newLeagueId, r.name, r.description, r.points, true);
+      rows.push({ LeagueID: newLeagueId, DisplayName: r.name, Description: r.description, PointValue: r.points, Enabled: true});
     })
 
-    connection.execBulkLoad(bulkLoadRules);
+    connection.execBulkLoad(bulkLoadRules, rows);
   })
 }
 
