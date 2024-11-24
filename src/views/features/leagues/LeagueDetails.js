@@ -8,6 +8,7 @@ import QueenList from "../../components/queen-list/QueenList";
 import { IdcardOutlined, KeyOutlined, LineChartOutlined, LoadingOutlined, OrderedListOutlined, ProfileOutlined, TeamOutlined, VideoCameraOutlined } from "@ant-design/icons";
 import LeagueUserList from "../../components/league-users-list/LeagueUserList";
 import { LeagueEpisodesList, LeagueRulesList } from "../../components";
+import StatsView from "../../components/stats/StatsView";
 
 class LeagueDetails extends React.Component {
 
@@ -51,7 +52,7 @@ class LeagueDetails extends React.Component {
               <LeagueEpisodesList leagueID={this.props.league.id} />
             </Tabs.TabPane>
             <Tabs.TabPane tab={this.renderTabTitle(LineChartOutlined, "Stats")} key="5">
-              
+              <StatsView leagueID={this.props.league.id} />
             </Tabs.TabPane>
             <Tabs.TabPane tab={this.renderTabTitle(this.props.loadingLeagueRules ? LoadingOutlined : KeyOutlined, "Rules")} key="6" forceRender>
               <LeagueRulesList leagueID={this.props.league.id} />
