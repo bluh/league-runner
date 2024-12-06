@@ -53,7 +53,7 @@ function connect() {
  * @param {boolean?} isProcedure True if the request is a stored procedure
  * @returns {Promise<TediousRow[]>} The result of the request
  */
-function request(query, numRows, parameters, isProcedure=false) {
+function request(query, numRows, parameters, isProcedure = false) {
   return new Promise((resolve, reject) => {
     connect()
       .then(connection => {
@@ -87,15 +87,24 @@ function request(query, numRows, parameters, isProcedure=false) {
  * @param {boolean?} isProcedure True if the request is a stored procedure
  * @returns {Promise<TediousRow[]>} The result of the request
  */
-function requestWithConnection(connection, query, numRows, parameters, isProcedure=false) {
-  return new Promise((resolve,reject) => {
-    const rows = [];
+function requestWithConnection(connection, query, numRows, parameters, isProcedure = false, returnMetadata = false) {
+  return new Promise((resolve, reject) => {
+    const resultingData = {
+      rows: [],
+      totalModified: 0,
+    }
 
-    const newRequest = new Request(query, (err) => {
+    const newRequest = new Request(query, (err, rowCount) => {
       if (err) {
         reject(err);
-      }else{
-        resolve(rows);
+      } else {
+        resultingData.totalModified = rowCount;
+
+        if (returnMetadata) {
+          resolve(resultingData);
+        } else {
+          resolve(resultingData.rows);
+        }
       }
     });
 
@@ -106,8 +115,8 @@ function requestWithConnection(connection, query, numRows, parameters, isProcedu
     }
 
     newRequest.on('row', (columns) => {
-      if(!numRows || numRows === 0 || rows.length < numRows){
-        rows.push(columns);
+      if (!numRows || numRows === 0 || resultingData.rows.length < numRows) {
+        resultingData.rows.push(columns);
       }
     })
 
@@ -115,16 +124,39 @@ function requestWithConnection(connection, query, numRows, parameters, isProcedu
       reject(err);
     })
 
-    if(isProcedure){
+    if (isProcedure) {
       connection.callProcedure(newRequest);
-    }else{
+    } else {
       connection.execSql(newRequest);
     }
   });
 }
 
+/**
+ * Creates a promise that resolves with the results of the query on a specified connection.
+ * 
+ * @param {tedious.Connection?} connection Connection to use for the request
+ * @param {string} query Query to run against sql server
+ * @param {int} numRows Number of rows to return, set to 0 for all rows
+ * @param {Object[]} parameters Array of parameters to set on the query
+ * @param {string} parameters[].name Name of parameter in the query
+ * @param {string} parameters[].value Value of the parameter
+ * @param {tedious.TediousType}  parameters[].type Type of the parameter
+ * @param {boolean?} isProcedure True if the request is a stored procedure
+ * @returns {Promise<TediousRow[]>} The result of the request
+ */
+
+function requestWithConnectionOrDefault(connection = null, query, numRows, parameters, isProcedure) {
+  if (connection) {
+    return requestWithConnection(connection, query, numRows, parameters, isProcedure);
+  }
+
+  return request(query, numRows, parameters, isProcedure);
+}
+
 module.exports = {
   connect,
   request,
-  requestWithConnection
+  requestWithConnection,
+  requestWithConnectionOrDefault
 }

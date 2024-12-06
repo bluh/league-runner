@@ -47,9 +47,9 @@ function getLeague(req, res) {
         { name: "ID", type: tedious.TYPES.Int, value: leagueID }
       ])
         .then((data) => {
-          if(data.length === 0){
+          if (data.length === 0) {
             reject(apiUtils.generateError(404, "No League found"));
-          }else{
+          } else {
             const responseData = data.map(values => ({
               id: values.ID.value,
               hash: values.Hash.value,
@@ -87,11 +87,12 @@ function newLeague(req, res) {
     leagueUtils.createLeague(userID, data)
       .then(newID => {
         res.status(200).json(newID);
+        resolve();
       })
       .catch(error => {
-        res.status(500).json(error);
+        return reject(error);
       })
-    
+
   })
 }
 
@@ -113,11 +114,12 @@ function updateLeague(req, res) {
     leagueUtils.updateLeague(userID, leagueID, data)
       .then(() => {
         res.status(200).json();
+        resolve();
       })
       .catch(error => {
-        res.status(500).json(error);
+        return reject(error);
       })
-    
+
   })
 }
 
@@ -225,6 +227,118 @@ function getUsersInLeague(req, res) {
   })
 }
 
+function updateUserInLeague(req, res) {
+  return new Promise((resolve, reject) => {
+    const leagueID = req.params.leagueID;
+    const modifyUserID = req.params.userID;
+    const userID = res.locals.userID;
+    const data = req.body ?? {};
+    const isAdd = req.method === "POST";
+    const isUpdate = req.method === "PUT";
+    const isDelete = req.method === "DELETE";
+
+    if (leagueID === null || leagueID === undefined) {
+      res.status(400).json(apiUtils.generateError(400, "Invalid league ID"));
+      reject();
+    } else if (modifyUserID === null || modifyUserID === undefined) {
+      res.status(400).json(apiUtils.generateError(400, "Invalid user ID"));
+      reject();
+    }
+
+    if (isUpdate || isAdd) {
+      const errors = validator.validate(data, types.league.updateUser);
+      if (errors) {
+        return reject(apiUtils.generateError(400, "Invalid payload", { errors }));
+      }
+    }
+
+    leagueUtils.canUpdateLeague(userID, leagueID)
+      .then((newConnection) => {
+        if (isAdd) {
+          databaseUtils.requestWithConnection(newConnection,
+            "INSERT INTO UserLeagues(LeagueID, UserID, RoleID) VALUES (@leagueID, @userID, @roleID)",
+            1,
+            [
+              { name: "roleID", value: data.roleID, type: tedious.TYPES.Int },
+              { name: "leagueID", value: leagueID, type: tedious.TYPES.Int },
+              { name: "userID", value: modifyUserID, type: tedious.TYPES.Int }
+            ], false, true
+          )
+            .then((result) => {
+              const didChange = result.totalModified === 1;
+              if (didChange) {
+                res.status(200).json();
+                resolve();
+              } else {
+                reject(apiUtils.generateError(500, "User not added league"));
+              }
+            })
+            .catch(err => {
+              console.error(err);
+              reject(apiUtils.generateError(500, "Error adding user"));
+            })
+            .finally(() => {
+              newConnection.close();
+            });
+        } else if (isUpdate) {
+          databaseUtils.requestWithConnection(newConnection,
+            "UPDATE UserLeagues SET RoleID=@roleID WHERE LeagueID=@leagueID AND UserID=@userID AND RoleID < 3",
+            1,
+            [
+              { name: "roleID", value: data.roleID, type: tedious.TYPES.Int },
+              { name: "leagueID", value: leagueID, type: tedious.TYPES.Int },
+              { name: "userID", value: modifyUserID, type: tedious.TYPES.Int }
+            ], false, true
+          )
+            .then((result) => {
+              const didChange = result.totalModified === 1;
+              if (didChange) {
+                res.status(200).json();
+                resolve();
+              } else {
+                reject(apiUtils.generateError(404, "User not found in league"));
+              }
+            })
+            .catch(err => {
+              console.error(err);
+              reject(apiUtils.generateError(500, "Error updating user"));
+            })
+            .finally(() => {
+              newConnection.close();
+            })
+        } else if (isDelete) {
+          databaseUtils.requestWithConnection(newConnection,
+            "DELETE TOP(1) FROM UserLeagues WHERE LeagueID=@leagueID AND UserID=@userID AND RoleID=1",
+            1,
+            [
+              { name: "leagueID", value: leagueID, type: tedious.TYPES.Int },
+              { name: "userID", value: modifyUserID, type: tedious.TYPES.Int }
+            ], false, true
+          )
+            .then((result) => {
+              const didChange = result.totalModified === 1;
+              if (didChange) {
+                res.status(200).json();
+                resolve();
+              } else {
+                reject(apiUtils.generateError(404, "User not found in league"));
+              }
+            })
+            .catch(err => {
+              console.error(err);
+              reject(apiUtils.generateError(500, "Error deleting user"));
+            })
+            .finally(() => {
+              newConnection.close();
+            })
+        }
+      })
+      .catch(err => {
+        reject(apiUtils.generateError(401, "Unauthorized", err));
+      })
+  });
+}
+
 function getUserWeeklyDetails(req, res) {
   return new Promise((resolve, reject) => {
     const leagueID = req.params.leagueID;
@@ -263,7 +377,7 @@ function getUserWeeklyDetails(req, res) {
   })
 }
 
-function getUserDraftDetails(req, res){
+function getUserDraftDetails(req, res) {
   return new Promise((resolve, reject) => {
     const leagueID = req.params.leagueID;
     const userID = req.params.userID;
@@ -524,6 +638,72 @@ function registerApi(app) {
    */
   app.get('/api/league/:leagueID/users', roleUtils.authorize(['User']), apiUtils.wrapHandler(getUsersInLeague));
 
+
+  /**
+   * @openapi
+   * 
+   * /api/league/{leagueID}/users/{userID}:
+   *  put:
+   *    description: Updates the status of a user in a league
+   *    tags: [League]
+   *    requestBody:
+   *      content:
+   *        application/json:
+   *          schema:
+   *            $ref: '#/definitions/updateUser'
+   *    parameters:
+   *      - name: leagueID
+   *        in: path
+   *        required: true
+   *        type: integer
+   *      - name: userID
+   *        in: path
+   *        required: true
+   *        type: integer
+   *    responses:
+   *      200:
+   *        description: Success
+   *  delete:
+   *    description: Deletes a user from a league
+   *    tags: [League]
+   *    parameters:
+   *      - name: leagueID
+   *        in: path
+   *        required: true
+   *        type: integer
+   *      - name: userID
+   *        in: path
+   *        required: true
+   *        type: integer
+   *    responses:
+   *      200:
+   *        description: Success
+   *  post:
+   *    description: Adds a user to a league
+   *    tags: [League]
+   *    requestBody:
+   *      content:
+   *        application/json:
+   *          schema:
+   *            $ref: '#/definitions/updateUser'
+   *    parameters:
+   *      - name: leagueID
+   *        in: path
+   *        required: true
+   *        type: integer
+   *      - name: userID
+   *        in: path
+   *        required: true
+   *        type: integer
+   *    responses:
+   *      200:
+   *        description: Success
+   *  
+   */
+
+  app.put('/api/league/:leagueID/users/:userID', roleUtils.authorize(['User']), apiUtils.wrapHandler(updateUserInLeague));
+  app.delete('/api/league/:leagueID/users/:userID', roleUtils.authorize(['User']), apiUtils.wrapHandler(updateUserInLeague));
+  app.post('/api/league/:leagueID/users/:userID', roleUtils.authorize(['User']), apiUtils.wrapHandler(updateUserInLeague));
 
   /**
    * @openapi

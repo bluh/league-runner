@@ -1,4 +1,5 @@
 module.exports = {
   newLeague: require("./newLeague"),
-  updateLeague: require("./updateLeague")
+  updateLeague: require("./updateLeague"),
+  updateUser: require("./updateUser")
 }

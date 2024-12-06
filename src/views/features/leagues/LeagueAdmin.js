@@ -7,6 +7,7 @@ import leagueActions from "../../reducers/league/action";
 import { IdcardOutlined, ProfileOutlined, UserOutlined, VideoCameraAddOutlined, WarningOutlined } from "@ant-design/icons";
 import AdminQueenList from "../../components/queen-list/AdminQueenList";
 import AdminLeagueForm from "../../components/league-details/AdminLeagueForm";
+import AdminUserList from "../../components/league-users-list/AdminUserList";
 
 class LeagueAdmin extends React.Component {
   constructor(props) {
@@ -48,8 +49,8 @@ class LeagueAdmin extends React.Component {
             <Tabs.TabPane tab={this.renderTabTitle(ProfileOutlined, "Details")} key="1">
               <AdminLeagueForm />
             </Tabs.TabPane>
-            <Tabs.TabPane tab={this.renderTabTitle(UserOutlined, "Users")} key="2">
-              
+            <Tabs.TabPane tab={this.renderTabTitle(UserOutlined, "Players")} key="2" forceRender>
+              <AdminUserList leagueID={this.props.league.id} />
             </Tabs.TabPane>
             <Tabs.TabPane tab={this.renderTabTitle(VideoCameraAddOutlined, "Episodes")} key="3">
 

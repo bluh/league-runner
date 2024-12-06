@@ -38,7 +38,7 @@ function createLeague(userID, leagueData) {
                           if (transactionError) {
                             console.error(transactionError);
                             reject(apiUtils.generateError(500, "Error finalizing transaction", transactionError));
-                          }else{
+                          } else {
                             resolve(newLeagueId);
                           }
                         })
@@ -65,7 +65,7 @@ function createLeague(userID, leagueData) {
   })
 }
 
-function bulkLoadUsers(connection, userID, leagueData, newLeagueId){
+function bulkLoadUsers(connection, userID, leagueData, newLeagueId) {
   return new Promise((resolve, reject) => {
     // Bulk load new users into league
     const bulkLoadUsers = connection.newBulkLoad('UserLeagues', (usersLoadError, usersLoadRows) => {
@@ -86,18 +86,18 @@ function bulkLoadUsers(connection, userID, leagueData, newLeagueId){
 
     const rows = [];
 
-    rows.push({ LeagueID: newLeagueId, UserID: userID, RoleID: 3});
+    rows.push({ LeagueID: newLeagueId, UserID: userID, RoleID: 3 });
 
     leagueData.users.forEach(v => {
       if (v.user !== userID)
-        rows.push({ LeagueID: newLeagueId, UserID: v.user, RoleID: v.role});
+        rows.push({ LeagueID: newLeagueId, UserID: v.user, RoleID: v.role });
     })
 
     connection.execBulkLoad(bulkLoadUsers, rows);
   })
 }
 
-function bulkLoadQueens(connection, leagueData, newLeagueId){
+function bulkLoadQueens(connection, leagueData, newLeagueId) {
   return new Promise((resolve, reject) => {
     // Bulk load new queens into league
     const bulkLoadQueens = connection.newBulkLoad('Queens', (queensLoadError, queensLoadRows) => {
@@ -119,14 +119,14 @@ function bulkLoadQueens(connection, leagueData, newLeagueId){
     const rows = [];
 
     leagueData.queens.forEach(q => {
-      rows.push({ Name: q, LeagueID: newLeagueId, Enabled: true});
+      rows.push({ Name: q, LeagueID: newLeagueId, Enabled: true });
     })
 
     connection.execBulkLoad(bulkLoadQueens, rows);
   })
 }
 
-function bulkLoadRules(connection, leagueData, newLeagueId){
+function bulkLoadRules(connection, leagueData, newLeagueId) {
   return new Promise((resolve, reject) => {
     // Bulk load new rules into league
     const bulkLoadRules = connection.newBulkLoad('Rules', (rulesLoadError, rulesLoadRows) => {
@@ -150,7 +150,7 @@ function bulkLoadRules(connection, leagueData, newLeagueId){
     const rows = [];
 
     leagueData.rules.forEach(r => {
-      rows.push({ LeagueID: newLeagueId, DisplayName: r.name, Description: r.description, PointValue: r.points, Enabled: true});
+      rows.push({ LeagueID: newLeagueId, DisplayName: r.name, Description: r.description, PointValue: r.points, Enabled: true });
     })
 
     connection.execBulkLoad(bulkLoadRules, rows);
@@ -191,50 +191,45 @@ function updateLeague(userID, leagueID, leagueData) {
             return reject(apiUtils.generateError(500, "Error creating transaction", newTransactionError))
           }
 
-          databaseUtils.requestWithConnection(connection,
-            "SELECT * FROM UserAndLeagues WHERE UserID=@UserID AND LeagueID=@LeagueID AND LeagueRoleID>1", 1, [
-              { name: "UserID", value: userID, type: tedious.TYPES.Int },
-              { name: "LeagueID", value: leagueID, type: tedious.TYPES.Int }
-            ])
-            .then(data => {
-              if(data.length === 0){
-                return reject(apiUtils.generateError(401, "Unauthorized"));
-              }
-
+          canUpdateLeague(userID, leagueID, connection)
+            .then(() => {
               const { name, description, drafts, draftLeader } = leagueData;
 
               databaseUtils.requestWithConnection(connection,
                 "UPDATE Leagues SET Name=@Name, Description=@Description, Drafts=@Drafts, DraftLeader=@Leader WHERE ID=@LeagueID", 0, [
-                  { name: "Name", value: name, type: tedious.TYPES.Text },
-                  { name: "Description", value: description, type: tedious.TYPES.Text },
-                  { name: "Drafts", value: drafts, type: tedious.TYPES.Numeric },
-                  { name: "Leader", value: draftLeader, type: tedious.TYPES.Bit },
-                  { name: "LeagueID", value: leagueID, type: tedious.TYPES.Numeric }
-                ]
+                { name: "Name", value: name, type: tedious.TYPES.Text },
+                { name: "Description", value: description, type: tedious.TYPES.Text },
+                { name: "Drafts", value: drafts, type: tedious.TYPES.Numeric },
+                { name: "Leader", value: draftLeader, type: tedious.TYPES.Bit },
+                { name: "LeagueID", value: leagueID, type: tedious.TYPES.Numeric }
+              ]
               )
-              .then(() => {
-                doneTransaction(null, (transactionError) => {
-                  if (transactionError) {
-                    console.error(transactionError);
-                    reject(apiUtils.generateError(500, "Error finalizing transaction", transactionError));
-                  }else{
-                    resolve();
-                  }
+                .then(() => {
+                  return doneTransaction(null, (transactionError) => {
+                    if (transactionError) {
+                      console.error(transactionError);
+                      reject(apiUtils.generateError(500, "Error finalizing transaction", transactionError));
+                    } else {
+                      resolve();
+                    }
+                  })
                 })
-              })
-              .catch(updateError => {
-                doneTransaction(new Error(`Error updating data: ${updateError}`), () => {
-                  connection.close();
-                  console.error(updateError);
-                  reject(apiUtils.generateError(500, "Error updating League data", updateError));
+                .catch(updateError => {
+                  doneTransaction(new Error(`Error updating data: ${updateError}`), () => {
+                    connection.close();
+                    console.error(updateError);
+                    reject(apiUtils.generateError(500, "Error updating League data", updateError));
+                  })
                 })
-              })
             })
-            .catch(leagueError => {
-              doneTransaction("Error updating league", () => {
+            .catch(() => {
+              doneTransaction(new Error("Error updating league"), (transactionError) => {
+                if (transactionError) {
+                  reject(apiUtils.generateError(500, "Error finalizing transaction", transactionError));
+                } else {
+                  reject(apiUtils.generateError(401, "User not authorized to make modifications to this league"));
+                }
                 connection.close();
-                console.error(leagueError);
-                reject(apiUtils.generateError(500, "Error updating league", leagueError));
               })
             })
         }, tedious.ISOLATION_LEVEL.REPEATABLE_READ)
@@ -242,7 +237,35 @@ function updateLeague(userID, leagueID, leagueData) {
   })
 }
 
+/**
+ * 
+ * @returns {Promise<tedious.Connection>} connection Connection to use for the request
+ */
+function canUpdateLeague(userID, leagueID, connection = null) {
+  const withConnection = (thisConnection) => new Promise((resolve, reject) =>
+    databaseUtils.requestWithConnection(thisConnection,
+      "SELECT UserID FROM UserAndLeagues WHERE UserID=@UserID AND LeagueID=@LeagueID AND LeagueRoleID>1", 1, [
+      { name: "UserID", value: userID, type: tedious.TYPES.Int },
+      { name: "LeagueID", value: leagueID, type: tedious.TYPES.Int }
+    ])
+      .then(data => {
+        if (data.length === 0) {
+          reject("Unauthorized");
+        } else {
+          resolve(thisConnection);
+        }
+      })
+  );
+
+  if (connection) {
+    return withConnection(connection);
+  } else {
+    return databaseUtils.connect().then(newConnection => withConnection(newConnection));
+  }
+}
+
 module.exports = {
   createLeague,
-  updateLeague
+  updateLeague,
+  canUpdateLeague
 }
