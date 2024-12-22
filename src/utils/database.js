@@ -120,10 +120,6 @@ function requestWithConnection(connection, query, numRows, parameters, isProcedu
       }
     })
 
-    newRequest.on('error', (err) => {
-      reject(err);
-    })
-
     if (isProcedure) {
       connection.callProcedure(newRequest);
     } else {
@@ -154,9 +150,46 @@ function requestWithConnectionOrDefault(connection = null, query, numRows, param
   return request(query, numRows, parameters, isProcedure);
 }
 
+/**
+ * Creates a promise that interacts directly with a connection's transaction
+ * 
+ * @param {tedious.Connection?} connection Connection to use for the request
+ * @param {() => Promise} callback Callback to use with new transaction
+ * @returns {Promise<TediousRow[]>} The result of the request
+ */
+function useTransactionWithPromise(connection, callback) {
+  return new Promise((resolve, reject) => {
+    connection.transaction((newTransactionError, done) => {
+      if(newTransactionError){
+        console.error("Error making new transaction", newTransactionError);
+        return reject(newTransactionError);
+      }
+
+      return callback()
+        .then(() => {
+          done(null, (finishError) => {
+            if(finishError){
+              return reject(finishError);
+            }
+            return resolve();
+          })
+        })
+        .catch(err => {
+          done(err, (finishError) => {
+            if(finishError){
+              reject(finishError);
+            }
+            reject(err);
+          })
+        });
+    })
+  })
+}
+
 module.exports = {
   connect,
   request,
   requestWithConnection,
-  requestWithConnectionOrDefault
+  requestWithConnectionOrDefault,
+  useTransactionWithPromise
 }

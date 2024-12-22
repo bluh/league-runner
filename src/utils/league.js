@@ -250,6 +250,7 @@ function canUpdateLeague(userID, leagueID, connection = null) {
     ])
       .then(data => {
         if (data.length === 0) {
+          thisConnection.close();
           reject("Unauthorized");
         } else {
           resolve(thisConnection);

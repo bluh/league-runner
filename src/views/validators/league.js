@@ -1,4 +1,4 @@
-import validate from "validate.js";
+import validate from "./validator";
 
 function validateNewLeague(values) {
   // Top-level validation

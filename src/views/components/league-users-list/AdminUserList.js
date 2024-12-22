@@ -256,6 +256,7 @@ class AdminUserList extends React.Component {
             icon={<PlusOutlined />}
             type="primary"
             onClick={() => this.openNewModal()}
+            style={{ float: "right" }}
           >
             Add User
           </Button>

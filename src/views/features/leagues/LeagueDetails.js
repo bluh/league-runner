@@ -48,7 +48,7 @@ class LeagueDetails extends React.Component {
             <Tabs.TabPane tab={this.renderTabTitle(this.props.loadingLeagueUsers ? LoadingOutlined : TeamOutlined, "Players")} key="3" forceRender>
               <LeagueUserList leagueID={this.props.league.id} />
             </Tabs.TabPane>
-            <Tabs.TabPane tab={this.renderTabTitle(VideoCameraOutlined, "Episodes")} key="4" forceRender>
+            <Tabs.TabPane tab={this.renderTabTitle(this.props.episodesLoading ? LoadingOutlined :VideoCameraOutlined, "Episodes")} key="4" forceRender>
               <LeagueEpisodesList leagueID={this.props.league.id} />
             </Tabs.TabPane>
             <Tabs.TabPane tab={this.renderTabTitle(LineChartOutlined, "Stats")} key="5">
@@ -75,6 +75,7 @@ LeagueDetails.propTypes = {
     description: PropTypes.string
   }),
   queensLoading: PropTypes.bool,
+  episodesLoading: PropTypes.bool,
   loadingLeagueUsers: PropTypes.bool,
   loadingLeagueRules: PropTypes.bool
 }
@@ -83,18 +84,20 @@ LeagueDetails.defaultProps = {
   loading: false,
   league: {},
   queensLoading: true,
+  episodesLoading: true,
   loadingLeagueUsers: true,
   loadingLeagueRules: true
 }
 
 const mapStateToProps = (state) => {
-  const { loadingLeague, league, loadingLeagueUsers, loadingLeagueRules } = state.League;
+  const { loadingLeague, league, loadingLeagueUsers, loadingLeagueRules, loadingEpisodes } = state.League;
   const { loading: queensLoading } = state.Queens;
   
   return {
     loading: loadingLeague,
     league: league,
     queensLoading,
+    episodesLoading: loadingEpisodes,
     loadingLeagueUsers,
     loadingLeagueRules
   };

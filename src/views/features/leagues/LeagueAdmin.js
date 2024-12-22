@@ -4,10 +4,12 @@ import { connect } from "react-redux";
 import { Badge, Button, Modal, Spin, Tabs } from "antd";
 import LeagueBreadcrumb from "./LeagueBreadcrumb";
 import leagueActions from "../../reducers/league/action";
-import { IdcardOutlined, ProfileOutlined, UserOutlined, VideoCameraAddOutlined, WarningOutlined } from "@ant-design/icons";
+import { IdcardOutlined, KeyOutlined, LoadingOutlined, ProfileOutlined, UserOutlined, VideoCameraAddOutlined, WarningOutlined } from "@ant-design/icons";
 import AdminQueenList from "../../components/queen-list/AdminQueenList";
 import AdminLeagueForm from "../../components/league-details/AdminLeagueForm";
 import AdminUserList from "../../components/league-users-list/AdminUserList";
+import AdminEpisodesList from "../../components/league-episodes-list/AdminEpisodesList";
+import AdminRulesList from "../../components/league-rules-list/AdminRulesList";
 
 class LeagueAdmin extends React.Component {
   constructor(props) {
@@ -49,16 +51,19 @@ class LeagueAdmin extends React.Component {
             <Tabs.TabPane tab={this.renderTabTitle(ProfileOutlined, "Details")} key="1">
               <AdminLeagueForm />
             </Tabs.TabPane>
-            <Tabs.TabPane tab={this.renderTabTitle(UserOutlined, "Players")} key="2" forceRender>
+            <Tabs.TabPane tab={this.renderTabTitle(this.props.loadingLeagueUsers ? LoadingOutlined : UserOutlined, "Players")} key="2" forceRender>
               <AdminUserList leagueID={this.props.league.id} />
             </Tabs.TabPane>
-            <Tabs.TabPane tab={this.renderTabTitle(VideoCameraAddOutlined, "Episodes")} key="3">
-
+            <Tabs.TabPane tab={this.renderTabTitle(this.props.episodesLoading ? LoadingOutlined : VideoCameraAddOutlined, "Episodes")} key="3" forceRender>
+              <AdminEpisodesList leagueID={this.props.league.id} />
             </Tabs.TabPane>
-            <Tabs.TabPane tab={this.renderTabTitle(IdcardOutlined, "Queens")} key="4" forceRender>
+            <Tabs.TabPane tab={this.renderTabTitle(this.props.queensLoading ? LoadingOutlined : IdcardOutlined, "Queens")} key="4" forceRender>
               <AdminQueenList leagueID={this.props.league.id} />
             </Tabs.TabPane>
-            <Tabs.TabPane tab={this.renderTabTitle(WarningOutlined, "Danger Zone")} key="5">
+            <Tabs.TabPane tab={this.renderTabTitle(this.props.loadingLeagueRules ? LoadingOutlined : KeyOutlined, "Rules")} key="5" forceRender>
+              <AdminRulesList leagueID={this.props.league.id} />
+            </Tabs.TabPane>
+            <Tabs.TabPane tab={this.renderTabTitle(WarningOutlined, "Danger Zone")} key="6">
               <h2>Delete League</h2>
               <Button type="default" danger onClick={() => this.setState({ showDeleteModal: true })}>Delete League</Button>
             </Tabs.TabPane>
@@ -88,6 +93,7 @@ LeagueAdmin.propTypes = {
     name: PropTypes.string
   }),
   queensLoading: PropTypes.bool,
+  episodesLoading: PropTypes.bool,
   loadingLeagueUsers: PropTypes.bool,
   loadingLeagueRules: PropTypes.bool
 }
@@ -96,18 +102,20 @@ LeagueAdmin.defaultProps = {
   loading: false,
   league: {},
   queensLoading: true,
+  episodesLoading: true,
   loadingLeagueUsers: true,
   loadingLeagueRules: true
 }
 
 const mapStateToProps = (state) => {
-  const { loadingLeague, league, loadingLeagueUsers, loadingLeagueRules } = state.League;
+  const { loadingLeague, league, loadingLeagueUsers, loadingLeagueRules, loadingEpisodes } = state.League;
   const { loading: queensLoading } = state.Queens;
 
   return {
     loading: loadingLeague,
     league: league,
     queensLoading,
+    episodesLoading: loadingEpisodes,
     loadingLeagueUsers,
     loadingLeagueRules
   };

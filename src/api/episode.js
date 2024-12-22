@@ -1,4 +1,5 @@
 const tedious = require('tedious');
+const episodeUtils = require("../utils/episode");
 const roleUtils = require('../utils/role');
 const apiUtils = require('../utils/api');
 
@@ -77,6 +78,23 @@ function getEpisodeQueens(req, res){
   );
 }
 
+function createNewEpisode(req, res) {
+  const userID = res.locals.userID;
+  const data = req.body ?? {};
+
+  return episodeUtils.createEpisode(userID, data)
+    .then(() => {
+      res.status(200).json({});
+    })
+    .catch(err => {
+      if(err.DLError){
+        throw err;
+      }else{
+        throw apiUtils.generateError(500, "Error creating new Episode", err);
+      }
+    })
+}
+
 function registerApi(api) {
   /**
    * @openapi
@@ -99,6 +117,24 @@ function registerApi(api) {
    *        description: The Episode object
    */
   api.get('/api/episode/:episodeID', roleUtils.authorize(['User']), apiUtils.wrapHandler(getEpisode));
+
+  /**
+   * @openapi
+   * 
+   * /api/episode:
+   *  post:
+   *    description: Create a new Episode
+   *    tags: [Episode, Create]
+   *    requestBody:
+   *      content:
+   *        application/json:
+   *          schema:
+   *            $ref: '#/definitions/updateLeague'
+   *    responses:
+   *      200:
+   *        description: The Episode object
+   */
+  api.post('/api/episode', roleUtils.authorize(['User']), apiUtils.wrapHandler(createNewEpisode));
 
   /**
    * @openapi

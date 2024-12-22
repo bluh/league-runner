@@ -76,10 +76,13 @@ function registerApi(app) {
    *            required:
    *              - username
    *              - password
+   *              - email
    *            properties:
    *              username:
    *                type: string
    *              password:
+   *                type: string
+   *              email:
    *                type: string
    *    responses:
    *      200:
@@ -110,7 +113,7 @@ function registerApi(app) {
           res.status(401).json(apiUtils.generateError(500, "Could not register", err));
         })
     }else{
-      res.status(400).json(apiUtils.generateError(400, "Username and Password required"));
+      res.status(400).json(apiUtils.generateError(400, "Username, Password, and Email required"));
     }
   })
 

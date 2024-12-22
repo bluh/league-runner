@@ -10,7 +10,13 @@ function getEpisodeDetails(id) {
     .then(response => response.data);
 }
 
+function addNewEpisode(data){
+  return api.post(`/episode`, data)
+    .then(response => response.data);
+}
+
 export default {
   getEpisode,
-  getEpisodeDetails
+  getEpisodeDetails,
+  addNewEpisode
 }
