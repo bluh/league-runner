@@ -39,7 +39,29 @@ function bulkLoadDetails(connection, details, newEpisodeID) {
   });
 }
 
-async function createEpisode(userID, episodeData) {
+async function updateEpisodeDetails(connection, details, episodeID){
+  const table = {
+    columns: [
+      { name: 'ID', type: tedious.TYPES.Int },
+      { name: 'QueenID', type: tedious.TYPES.Int },
+      { name: 'RuleID', type: tedious.TYPES.Int },
+      { name: 'Timestamp', type: tedious.TYPES.Time, scale: 2 },
+    ],
+    rows: details.map(detail => [
+      detail.id,
+      detail.queen.id,
+      detail.rule.id,
+      moment.utc(detail.timestamp, "HH:mm:ss").toDate()
+    ])
+  };
+
+  await databaseUtils.requestWithConnection(connection, "MergeQueenRules", 0, [
+    { name: "MergeTable", value: table, type: tedious.TYPES.TVP },
+    { name: "ForEPID", value: episodeID, type: tedious.TYPES.Int }
+  ], true);
+}
+
+async function createOrUpdateEpisode(userID, episodeData, creating, episodeID) {
   const errors = validateEpisodeForm(episodeData);
 
   if(errors){
@@ -55,31 +77,55 @@ async function createEpisode(userID, episodeData) {
     throw apiUtils.generateError(401, "Unauthorized");
   }
 
-  await databaseUtils.useTransactionWithPromise(connection, async () => {
-    const data = await databaseUtils.requestWithConnection(connection,
-      "INSERT INTO dbo.Episodes(Name, LeagueID, Number, Enabled, AirDate) OUTPUT Inserted.ID VALUES(@Name, @LeagueID, @Number, 1, @AirDate)",
-      1,
-      [
-        { name: "Name", value: name, type: tedious.TYPES.Text },
-        { name: "LeagueID", value: leagueID, type: tedious.TYPES.Int },
-        { name: "Number", value: number, type: tedious.TYPES.Int },
-        { name: "AirDate", value: airDate, type: tedious.TYPES.Date }
-      ], false, true);
-
-    if (data.totalModified !== 1) {
-      throw apiUtils.generateError(500, "Episode insert failed");
+  if(creating){
+    await databaseUtils.useTransactionWithPromise(connection, async () => {
+      const data = await databaseUtils.requestWithConnection(connection,
+        "INSERT INTO dbo.Episodes(Name, LeagueID, Number, Enabled, AirDate) OUTPUT Inserted.ID VALUES(@Name, @LeagueID, @Number, 1, @AirDate)",
+        1,
+        [
+          { name: "Name", value: name, type: tedious.TYPES.Text },
+          { name: "LeagueID", value: leagueID, type: tedious.TYPES.Int },
+          { name: "Number", value: number, type: tedious.TYPES.Int },
+          { name: "AirDate", value: airDate, type: tedious.TYPES.Date }
+        ], false, true);
+  
+      if (data.totalModified !== 1) {
+        throw apiUtils.generateError(500, "Episode insert failed");
+      }
+  
+      if(details && details.length > 0){
+        const newDataID = data.rows[0].ID.value;
+  
+        return await bulkLoadDetails(connection, details, newDataID);
+      }
+    });
+  }else{
+    if(!episodeID){
+      throw apiUtils.generateError(400, "Invalid EP ID");
     }
 
-    if(details && details.length > 0){
+    await databaseUtils.useTransactionWithPromise(connection, async () => {
+      const data = await databaseUtils.requestWithConnection(connection,
+        "UPDATE dbo.Episodes SET Name = @Name, AirDate = @AirDate OUTPUT INSERTED.ID WHERE ID = @ID",
+        1,
+        [
+          { name: "Name", value: name, type: tedious.TYPES.Text },
+          { name: "AirDate", value: airDate, type: tedious.TYPES.Date },
+          { name: "ID", value: episodeID, type: tedious.TYPES.Int }
+        ], false, true);
+  
+      if (data.totalModified !== 1) {
+        throw apiUtils.generateError(500, "Episode insert failed");
+      }
       const newDataID = data.rows[0].ID.value;
 
-      return await bulkLoadDetails(connection, details, newDataID);
-    }
-  });
+      return await updateEpisodeDetails(connection, details ?? [], newDataID);
+    })
+  }
 
   connection.close();
 }
 
 module.exports = {
-  createEpisode
+  createOrUpdateEpisode
 }

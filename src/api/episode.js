@@ -35,7 +35,7 @@ function getEpisodeDetails(req, res) {
         { name: "EpisodeID", type: tedious.TYPES.Int, param: "episodeID" }
       ]
     },
-    values => values.map(value => ({
+    values => values.filter(value => value.RecordID.value !== null).map(value => ({
       id: value.RecordID.value,
       episodeID: value.EpisodeID.value,
       leagueID: value.LeagueID.value,
@@ -82,7 +82,7 @@ function createNewEpisode(req, res) {
   const userID = res.locals.userID;
   const data = req.body ?? {};
 
-  return episodeUtils.createEpisode(userID, data)
+  return episodeUtils.createOrUpdateEpisode(userID, data, true)
     .then(() => {
       res.status(200).json({});
     })
@@ -91,6 +91,24 @@ function createNewEpisode(req, res) {
         throw err;
       }else{
         throw apiUtils.generateError(500, "Error creating new Episode", err);
+      }
+    })
+}
+
+function updateEpisode(req, res) {
+  const userID = res.locals.userID;
+  const episodeID = req.params.episodeID;
+  const data = req.body ?? {};
+
+  return episodeUtils.createOrUpdateEpisode(userID, data, false, episodeID)
+    .then(() => {
+      res.status(200).json({});
+    })
+    .catch(err => {
+      if(err.DLError){
+        throw err;
+      }else{
+        throw apiUtils.generateError(500, "Error updating Episode", err);
       }
     })
 }
@@ -124,17 +142,41 @@ function registerApi(api) {
    * /api/episode:
    *  post:
    *    description: Create a new Episode
-   *    tags: [Episode, Create]
+   *    tags: [Episode]
    *    requestBody:
    *      content:
    *        application/json:
    *          schema:
-   *            $ref: '#/definitions/updateLeague'
+   *            $ref: '#/definitions/episodeForm'
    *    responses:
    *      200:
    *        description: The Episode object
    */
   api.post('/api/episode', roleUtils.authorize(['User']), apiUtils.wrapHandler(createNewEpisode));
+  
+
+  /**
+   * @openapi
+   * 
+   * /api/episode/{episodeID}:
+   *  put:
+   *    description: Updates an Episode
+   *    tags: [Episode]
+   *    parameters:
+   *      - name: episodeID
+   *        in: path
+   *        required: true
+   *        type: integer
+   *    requestBody:
+   *      content:
+   *        application/json:
+   *          schema:
+   *            $ref: '#/definitions/episodeForm'
+   *    responses:
+   *      200:
+   *        description: The Episode object
+   */
+  api.put('/api/episode/:episodeID', roleUtils.authorize(['User']), apiUtils.wrapHandler(updateEpisode));
 
   /**
    * @openapi

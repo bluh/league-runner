@@ -83,7 +83,8 @@ function request(query, numRows, parameters, isProcedure = false) {
  * @param {Object[]} parameters Array of parameters to set on the query
  * @param {string} parameters[].name Name of parameter in the query
  * @param {string} parameters[].value Value of the parameter
- * @param {tedious.TediousType}  parameters[].type Type of the parameter
+ * @param {tedious.TediousType} parameters[].type Type of the parameter
+ * @param {tedious.ParameterOptions?} parameters[].options Options of the parameter
  * @param {boolean?} isProcedure True if the request is a stored procedure
  * @returns {Promise<TediousRow[]>} The result of the request
  */
@@ -110,7 +111,7 @@ function requestWithConnection(connection, query, numRows, parameters, isProcedu
 
     if (parameters && Array.isArray(parameters)) {
       parameters.forEach(obj => {
-        newRequest.addParameter(obj.name, obj.type, obj.value);
+        newRequest.addParameter(obj.name, obj.type, obj.value, obj.options ?? {});
       })
     }
 

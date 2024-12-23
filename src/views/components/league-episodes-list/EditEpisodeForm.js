@@ -18,8 +18,8 @@ class EditEpisodeForm extends React.Component {
 
     this.formRef = createForm({
       initialValues: this.props.defaultValues,
-      validate: (vals) => validateEpisodeForm(vals, { fullMessages: false }),
-      onSubmit: (values) => this.props.onSubmit(values)
+      validate: validateEpisodeForm,
+      onSubmit: (values) => this.props.onSubmit(values),
     });
 
     this.formRef.subscribe(
@@ -90,7 +90,7 @@ class EditEpisodeForm extends React.Component {
       return;
 
     const newVal = {
-      id: this.rowKey,
+      key: this.rowKey,
       queen: queenVal,
       rule: ruleVal,
       timestamp: timestampToggle && timestamp ? timestamp : moment("00:00:00", "HH:mm:ss")
@@ -118,6 +118,8 @@ class EditEpisodeForm extends React.Component {
       const modifiedDetails = details.toSpliced(recordIndex, 1);
       
       this.formRef.change("details", modifiedDetails);
+      
+      this.props.onDirty();
     });
   }
 
@@ -133,6 +135,7 @@ class EditEpisodeForm extends React.Component {
     return (
       <Form
         form={this.formRef}
+        initialValues={this.props.defaultValues}
       >
         {({
           values
@@ -155,7 +158,7 @@ class EditEpisodeForm extends React.Component {
                     validateStatus={meta.touched && meta.error ? "error" : "success"}
                     help={(meta.touched && meta.error) ? meta.error : null}
                   >
-                    <Input type="number" {...input} />
+                    <Input type="number" {...input} disabled={this.props.isEdit} />
                   </AntdForm.Item>
                 )}
               </Field>
@@ -183,7 +186,12 @@ class EditEpisodeForm extends React.Component {
                     validateStatus={meta.touched && meta.error ? "error" : "success"}
                     help={(meta.touched && meta.error) ? meta.error : null}
                   >
-                    <DatePicker {...input} style={{ width: "100%" }} />
+                    <DatePicker
+                      {...input}
+                      onChange={(val) => input.onChange(val.utc(true).startOf("day"))}
+                      style={{ width: "100%" }}
+                      picker="date"
+                    />
                   </AntdForm.Item>
                 )}
               </Field>
@@ -287,7 +295,7 @@ class EditEpisodeForm extends React.Component {
                     dataSource={values.details ?? []}
                     pagination={false}
                     columns={values.timestampToggle ? this.colsWithTimestamp : this.colsWithoutTimestamp}
-                    rowKey={row => row.id}
+                    rowKey={row => row.key}
                   />
                 </Col>
               </Row>

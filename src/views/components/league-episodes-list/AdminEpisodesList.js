@@ -81,8 +81,13 @@ class AdminEpisodesList extends React.Component {
       .then(episodeData => {
         const data = {
           ...record,
-          episodeData
-        }
+          airDate: moment.utc(record.airDate),
+          details: episodeData.map(detail => ({
+            ...detail,
+            key: `EXISTING_${detail.id}`,
+            timestamp: moment.utc(detail.timestamp)
+          })),
+        };
 
         this.setState({
           drawerLoading: false,
@@ -95,8 +100,10 @@ class AdminEpisodesList extends React.Component {
     const newEpNumber = this.props.episodes.reduce((prev, curr) => Math.max(prev, curr.number), 0) || 0;
 
     const newData = {
+      id: null,
       number: newEpNumber + 1,
-      airDate: moment()
+      airDate: moment().utc(true).startOf("day"),
+      details: []
     };
 
     this.setState({
@@ -128,32 +135,50 @@ class AdminEpisodesList extends React.Component {
       leagueID: this.props.leagueID,
       name: values.name,
       number: values.number,
-      airDate: values.airDate.toString(),
+      airDate: values.airDate.format(),
       details: (values.details ?? []).map(detail => ({
+        id: detail.id ?? -1,
         queen: {
           id: detail.queen.id,
         },
         rule: {
           id: detail.rule.id,
         },
-        timestamp: detail.timestamp.utc(true).toString()
+        timestamp: detail.timestamp.utc(true).format()
       }))
     };
 
-    episodeServices.addNewEpisode(newData)
-      .then(() => {
-        this.setState({
-          drawerOpen: false
-        });
-    
-        this.formRef.current && this.formRef.current.resetForm();
-
-        this.props.dispatch(leagueActions.getLeagueEpisodes(this.props.leagueID));
-      })
-      .catch(err => {
-        console.error(err);
-        message.error("Error creating new Episode");
-      })
+    if(!this.state.forEdit){
+      episodeServices.addNewEpisode(newData)
+        .then(() => {
+          this.setState({
+            drawerOpen: false
+          });
+      
+          this.formRef.current && this.formRef.current.resetForm();
+  
+          this.props.dispatch(leagueActions.getLeagueEpisodes(this.props.leagueID));
+        })
+        .catch(err => {
+          console.error(err);
+          message.error("Error creating new Episode");
+        })
+    }else{
+      episodeServices.updateEpisode(newData, values.id)
+        .then(() => {
+          this.setState({
+            drawerOpen: false
+          });
+      
+          this.formRef.current && this.formRef.current.resetForm();
+  
+          this.props.dispatch(leagueActions.getLeagueEpisodes(this.props.leagueID));
+        })
+        .catch(err => {
+          console.error(err);
+          message.error("Error updating Episode");
+        })
+    }
   }
 
   render() {

@@ -15,8 +15,14 @@ function addNewEpisode(data){
     .then(response => response.data);
 }
 
+function updateEpisode(data, episodeID) {
+  return api.put(`/episode/${episodeID}`, data)
+    .then(response => response.data);
+}
+
 export default {
   getEpisode,
   getEpisodeDetails,
-  addNewEpisode
+  addNewEpisode,
+  updateEpisode
 }
