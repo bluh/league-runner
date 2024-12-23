@@ -3,7 +3,7 @@ const roleUtils = require('../utils/role');
 const apiUtils = require('../utils/api');
 const leagueUtils = require('../utils/league');
 const databaseUtils = require('../utils/database');
-const { validator, types } = require('../utils/validator');
+const { validateNewLeague, validateUpdateLeague, validateLeagueUser } = require("../types/validators");
 
 function getUserLeagues(req, res) {
   return new Promise((resolve, reject) => {
@@ -79,7 +79,7 @@ function newLeague(req, res) {
       return reject(apiUtils.generateError(400, "No payload"));
     }
 
-    const errors = validator.validate(data, types.league.newLeague);
+    const errors = validateNewLeague(data);
     if (errors) {
       return reject(apiUtils.generateError(400, "Invalid payload", { errors }));
     }
@@ -106,7 +106,7 @@ function updateLeague(req, res) {
       return reject(apiUtils.generateError(400, "No payload"));
     }
 
-    const errors = validator.validate(data, types.league.updateLeague);
+    const errors = validateUpdateLeague(data);
     if (errors) {
       return reject(apiUtils.generateError(400, "Invalid payload", { errors }));
     }
@@ -246,7 +246,7 @@ function updateUserInLeague(req, res) {
     }
 
     if (isUpdate || isAdd) {
-      const errors = validator.validate(data, types.league.updateUser);
+      const errors = validateLeagueUser(data);
       if (errors) {
         return reject(apiUtils.generateError(400, "Invalid payload", { errors }));
       }

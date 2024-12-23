@@ -17,30 +17,38 @@
  *        type: boolean
  */
 
-module.exports = {
+module.exports = {  
   name: {
     type: "string",
-    presence: true,
+    presence: {
+      allowEmpty: false,
+      message: "Please specify a name for the league"
+    },
     length: {
-      maximum: 20
+      maximum: 20,
+      message: "Please enter a shorter league name"
     }
   },
   description: {
     type: "string",
     length: {
-      maximum: 200
+      maximum: 200,
+      message: "Please enter a shorter description"
     }
   },
   drafts: {
-    type: "number",
-    presence: true,
+    presence: {
+      allowEmpty: false,
+      message: "Please specify the number of drafts on a team"
+    },
     numericality: {
       onlyInteger: true,
-      greaterThan: 0
+      greaterThan: 0,
+      notValid: "Please specify the number of drafts on a team",
+      notGreaterThan: "Please specify the number of drafts on a team"
     }
   },
   draftLeader: {
-    type: "boolean",
-    presence: true
-  }
+    type: "boolean"
+  },
 }

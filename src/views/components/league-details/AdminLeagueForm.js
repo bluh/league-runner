@@ -3,7 +3,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { Field, Form } from "react-final-form";
-import leagueValidator from "../../validators/league";
+import { validateUpdateLeague } from "../../../types/validators";
 import leagueActions from "../../reducers/league/action";
 import { FORM_ERROR } from "final-form";
 
@@ -38,7 +38,7 @@ class AdminLeagueForm extends React.Component {
                   ...data,
                   drafts: data.drafts * 1,
                 })}
-                validate={leagueValidator.validateUpdateLeague}
+                validate={vals => validateUpdateLeague(vals, { fullMessages: false })}
               >
                 {({
                   handleSubmit,

@@ -51,9 +51,31 @@ validator.validators.array = function(value, options){
   return errors.length === 0 ? null : errors;
 }
 
-const types = require('../types/types');
+
+/**
+ * Usage:
+ *  validator: {
+ *    conditional: {
+ *      on: path of item to check
+ *      is: value to check against item
+ *      success: validation to run if the item is the value
+ *      fail: validation to run if the item is not the value
+ *    }
+ *  }
+ */
+validator.validators.conditional = function(value, options, key, attributes) {
+  const { on, is, success, fail } = options;
+  const otherVal = validator.getDeepObjectValue(attributes, on);
+
+  if(success && otherVal && otherVal === is){
+    return validator.single(value, success);
+  }
+
+  if(fail){
+    return validator.single(value, fail);
+  }
+}
 
 module.exports = {
-  validator,
-  types
+  validator
 };

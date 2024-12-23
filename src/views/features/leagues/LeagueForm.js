@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { withRouter } from "react-router";
 import { Prompt } from "react-router-dom";
-import leagueValidator from "../../validators/league";
+import { validateNewLeague } from "../../../types/validators";
 import { Field, Form } from "react-final-form";
 import { Tabs, Spin, Row, Col, Form as AntdForm, Input, Menu, Tooltip, Avatar, Button, Dropdown, Card, Space } from "antd";
 import { ProfileOutlined, IdcardOutlined, TeamOutlined, KeyOutlined, ToolOutlined, SmileOutlined, UserOutlined, DeleteOutlined, ExclamationCircleTwoTone } from "@ant-design/icons";
@@ -196,7 +196,7 @@ class LeagueForm extends React.Component {
 
           return this.props.onSubmit(newData);
         }}
-        validate={leagueValidator.validateNewLeague}
+        validate={vals => validateNewLeague(vals, { fullMessages: false })}
       >
         {({
             handleSubmit,

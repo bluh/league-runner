@@ -3,6 +3,7 @@ const tedious = require("tedious");
 const databaseUtils = require("./database");
 const leagueUtils = require("./league");
 const apiUtils = require("./api");
+const { validateEpisodeForm } = require("../types/validators");
 
 function bulkLoadDetails(connection, details, newEpisodeID) {
   return new Promise((resolve, reject) => {
@@ -39,6 +40,11 @@ function bulkLoadDetails(connection, details, newEpisodeID) {
 }
 
 async function createEpisode(userID, episodeData) {
+  const errors = validateEpisodeForm(episodeData);
+
+  if(errors){
+    throw apiUtils.generateError(400, "Bad request", errors);
+  }
   const { leagueID, name, number, airDate, details } = episodeData;
 
   const connection = await databaseUtils.connect();
@@ -46,7 +52,7 @@ async function createEpisode(userID, episodeData) {
   try {
     await leagueUtils.canUpdateLeague(userID, leagueID, connection);
   } catch (err) {
-    throw apiUtils.generateError(400, "Unauthorized");
+    throw apiUtils.generateError(401, "Unauthorized");
   }
 
   await databaseUtils.useTransactionWithPromise(connection, async () => {

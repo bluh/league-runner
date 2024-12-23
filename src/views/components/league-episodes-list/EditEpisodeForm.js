@@ -2,7 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import moment from "moment";
 import { Field, Form } from "react-final-form";
-import episodeValidator from "../../validators/episode";
+import { validateEpisodeForm } from "../../../types/validators";
 import { createForm } from "final-form";
 import { Form as AntdForm, Button, Col, DatePicker, Input, Row, Select, Switch, Table, TimePicker } from "antd";
 import { connect } from "react-redux";
@@ -18,7 +18,7 @@ class EditEpisodeForm extends React.Component {
 
     this.formRef = createForm({
       initialValues: this.props.defaultValues,
-      validate: episodeValidator.validateEpisodeForm,
+      validate: (vals) => validateEpisodeForm(vals, { fullMessages: false }),
       onSubmit: (values) => this.props.onSubmit(values)
     });
 

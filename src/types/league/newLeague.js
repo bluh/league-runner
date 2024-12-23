@@ -1,3 +1,5 @@
+const updateLeague = require("./updateLeague");
+
 /**
  * @openapi
  * definitions:
@@ -47,86 +49,95 @@
  */
 
 module.exports = {
-  name: {
-    type: "string",
-    presence: true,
+  ...updateLeague,
+  queens: {
+    type: "array",
+    presence: {
+      allowEmpty: false,
+      message: "At least one queen must be registered."
+    },
     length: {
-      maximum: 20
+      minimum: 1,
+      tooShort: "At least one queen must be registered."
+    },
+    array: {
+      each: {
+        type: "string",
+        presence: {
+          message: "Please enter a queen name",
+          allowEmpty: false
+        }
+      }
     }
-  },
-  description: {
-    type: "string",
-    length: {
-      maximum: 200
-    }
-  },
-  drafts: {
-    type: "number",
-    presence: true,
-    numericality: {
-      onlyInteger: true,
-      greaterThan: 0
-    }
-  },
-  draftLeader: {
-    type: "boolean",
-    presence: true
   },
   users: {
+    type: "array",
+    presence: {
+      allowEmpty: false,
+      message: "At least one user must be registered."
+    },
+    length: {
+      minimum: 1,
+      tooShort: "At least one user must be registered."
+    },
     array: {
       each: {
         role: {
           type: "number",
-          presence: true,
+          presence: {
+            message: "Please select a role",
+          },
           numericality: {
             onlyInteger: true,
             greaterThan: 0,
-            lessThanOrEqualTo: 3 
+            lessThanOrEqualTo: 3
           }
         },
         user: {
           type: "number",
-          presence: true
+          presence: {
+            message: "Please enter a username"
+          }
         }
       },
       unique: "user"
     }
   },
-  queens: {
-    array: {
-      each: {
-        type: "string",
-        presence: true,
-        length: {
-          maximum: 100
-        }
-      }
+  rules: {
+    type: "array",
+    presence: {
+      allowEmpty: false,
+      message: "At least one rule must be created."
     },
     length: {
       minimum: 1,
-      tooShort: "Please specify at least 1 queen"
-    }
-  },
-  rules: {
+      tooShort: "At least one rule must be created."
+    },
     array: {
       each: {
         name: {
           type: "string",
-          presence: true,
+          presence: {
+            message: "Please enter a rule name",
+            allowEmpty: false
+          },
           length: {
             maximum: 100
           }
         },
         points: {
           type: "integer",
-          presence: true
+          presence: {
+            message: "Please enter a point value",
+            allowEmpty: false
+          }
         },
         description: {
           type: "string",
           length: {
             maximum: 500
           }
-        }
+        },
       }
     }
   }
